@@ -1,9 +1,12 @@
 import express from "express"
-import { PrismaClient } from "../db/generated/prisma";
+import { PrismaClient, Role } from "../db/generated/prisma";
 import jwt from "jsonwebtoken"
 import * as OTPAuth from "otpauth";
+import z from "zod";
+import dotenv from "dotenv";
 
-// Extend Express Request interface to include userId
+dotenv.config();
+
 declare global {
     namespace Express {
         interface Request {
@@ -11,22 +14,29 @@ declare global {
         }
     }
 }
-
 let topo = new OTPAuth.TOTP({
-    issuer:"ACME",
-    label:"kanha",
-    algorithm:"SHA1",
-    digits:6,
-    period:30,
-    secret:"hello"
+    issuer: "ACME",
+    label: "kanha",
+    algorithm: "SHA1",
+    digits: 6,
+    period: 30,
+    secret: "JBSWY3DPEHPK3PXP"
 });
 
-let secret = new OTPAuth.Secret({size:30})
-let token = topo.generate()
-let validate = topo.validate({token,window:1});
-console.log(topo.generate());
-console.log(validate)
-
+const otpSchema = z.object({
+    otp: z.string()
+})
+const signupSchema = z.object({
+    email: z.string().email(),
+    password: z.string(),
+    name: z.string(),
+    phone: z.string(),
+    role: z.nativeEnum(Role)
+})
+const loginSchema = z.object({
+    email: z.string().email(),
+    password: z.string()
+})
 const user = express.Router();
 
 user.use(express.json());
@@ -34,7 +44,7 @@ user.use(express.json());
 const prisma = new PrismaClient()
 
 // Middleware to verify JWT token
-const authMiddleware = (req: express.Request, res: express.Response, next: express.NextFunction): void => {
+export const authMiddleware = (req: express.Request, res: express.Response, next: express.NextFunction): void => {
     const header = req.headers['auth'] as string;
 
     if (!header) {
@@ -43,7 +53,7 @@ const authMiddleware = (req: express.Request, res: express.Response, next: expre
     }
 
     try {
-        const decode = jwt.verify(header, "hello") as any;
+        const decode = jwt.verify(header, process.env.JWT_SECRET || "hello") as any;
         req.userId = decode.id;
         next();
     } catch (error) {
@@ -51,15 +61,40 @@ const authMiddleware = (req: express.Request, res: express.Response, next: expre
         return;
     }
 };
+const generateOtp = () => {
+    const otp = topo.generate();
+    console.log(otp);
+    return otp;
+}
 
 // Public routes (no authentication required)
+user.get("/generate-otp", (req, res) => {
+    const otp = generateOtp();
+    res.json({ otp });
+});
+
 user.get("/login", (req, res) => {
-    res.send("Login page");
+    try {
+        const { otp } = otpSchema.parse(req.headers)
+        if (!otp) {
+            res.send("No otp");
+            return;
+        }
+
+        const verify = topo.validate({ token: otp as string, window: 1 });
+        if (verify === null) {
+            res.send("Invalid otp");
+            return;
+        }
+        res.send("Login successful");
+    } catch (error) {
+        res.status(500).json({ error: 'Internal server error' });
+    }
 });
 
 user.post("/login", async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const { email, password } = loginSchema.parse(req.body);
 
         const users = await prisma.user.findFirst({
             where: {
@@ -81,7 +116,7 @@ user.post("/login", async (req, res) => {
 
 user.post("/signup", async (req, res) => {
     try {
-        const { email, password, phone, role, name } = req.body;
+        const { email, password, phone, role, name } = signupSchema.parse(req.body);
 
         const user = await prisma.user.create({
             data: {
@@ -94,7 +129,7 @@ user.post("/signup", async (req, res) => {
             }
         });
 
-        const token = jwt.sign({ id: user.id, email: user.email }, "hello");
+        const token = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET || "hello");
         res.send({ token, user });
     } catch (error) {
         res.status(400).json({ error: 'Failed to create user' });
@@ -108,7 +143,7 @@ user.get("/", authMiddleware, (req, res) => {
 
 
 user.put("/forget", async (req, res) => {
-    const { email, password } = req.body;
+    const { email, password } = loginSchema.parse(req.body);
     const user = await prisma.user.update({
         where: {
             email
@@ -118,6 +153,6 @@ user.put("/forget", async (req, res) => {
         }
 
     })
-    res.send("update password");
+    res.json({ message: "update password", user: user.email });
 })
 export default user;

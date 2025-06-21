@@ -1,3 +1,0 @@
--- AlterTable
-ALTER TABLE "user" ALTER COLUMN "role" SET NOT NULL,
-ALTER COLUMN "role" SET DATA TYPE "Role";
