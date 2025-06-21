@@ -1,0 +1,26 @@
+{
+  "name": "e_commerce",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "scripts": {
+    "run": "bun run index.ts",
+    "db": "bunx prisma migrate dev ",
+    "generate": "bunx prisma generate"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.10.1",
+    "@types/express": "^5.0.3",
+    "@types/jsonwebtoken": "^9.0.10",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "otpauth": "^9.4.0",
+    "prisma": "^6.10.1"
+  }
+}

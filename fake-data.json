@@ -1,0 +1,92 @@
+[
+  {
+    "id": 1,
+    "email": "john.doe@example.com",
+    "password": "hashedPassword123",
+    "name": "John Doe",
+    "phone": "+1-555-0123",
+    "created_At": "2024-01-15T10:30:00Z",
+    "role": ["customer"]
+  },
+  {
+    "id": 2,
+    "email": "jane.smith@example.com",
+    "password": "hashedPassword456",
+    "name": "Jane Smith",
+    "phone": "+1-555-0124",
+    "created_At": "2024-01-16T14:20:00Z",
+    "role": ["seller"]
+  },
+  {
+    "id": 3,
+    "email": "admin@example.com",
+    "password": "hashedPassword789",
+    "name": "Admin User",
+    "phone": "+1-555-0125",
+    "created_At": "2024-01-10T09:15:00Z",
+    "role": ["admin"]
+  },
+  {
+    "id": 4,
+    "email": "mike.wilson@example.com",
+    "password": "hashedPassword101",
+    "name": "Mike Wilson",
+    "phone": "+1-555-0126",
+    "created_At": "2024-01-18T16:45:00Z",
+    "role": ["customer", "seller"]
+  },
+  {
+    "id": 5,
+    "email": "sarah.jones@example.com",
+    "password": "hashedPassword202",
+    "name": "Sarah Jones",
+    "phone": "+1-555-0127",
+    "created_At": "2024-01-20T11:30:00Z",
+    "role": ["customer"]
+  },
+  {
+    "id": 6,
+    "email": "david.brown@example.com",
+    "password": "hashedPassword303",
+    "name": "David Brown",
+    "phone": "+1-555-0128",
+    "created_At": "2024-01-22T13:20:00Z",
+    "role": ["seller"]
+  },
+  {
+    "id": 7,
+    "email": "emma.davis@example.com",
+    "password": "hashedPassword404",
+    "name": "Emma Davis",
+    "phone": "+1-555-0129",
+    "created_At": "2024-01-25T08:45:00Z",
+    "role": ["customer"]
+  },
+  {
+    "id": 8,
+    "email": "alex.taylor@example.com",
+    "password": "hashedPassword505",
+    "name": "Alex Taylor",
+    "phone": "+1-555-0130",
+    "created_At": "2024-01-28T15:10:00Z",
+    "role": ["seller", "admin"]
+  },
+  {
+    "id": 9,
+    "email": "lisa.garcia@example.com",
+    "password": "hashedPassword606",
+    "name": "Lisa Garcia",
+    "phone": "+1-555-0131",
+    "created_At": "2024-02-01T12:00:00Z",
+    "role": ["customer"]
+  },
+  {
+    "id": 10,
+    "email": "robert.martinez@example.com",
+    "password": "hashedPassword707",
+    "name": "Robert Martinez",
+    "phone": "+1-555-0132",
+    "created_At": "2024-02-03T17:30:00Z",
+    "role": ["seller"]
+  }
+] 
