@@ -21,7 +21,9 @@ model user{
   name String?
   phone String
   created_At DateTime ?
-  role Role[]
+  role Role @default(customer)
+  store store[]
+  cart cart[]
 }
 
 enum Role{
@@ -29,3 +31,43 @@ enum Role{
   seller
   admin
 }
+
+model store{
+  id Int @id @default(autoincrement())
+  name String
+  address String
+  phone String
+  email String @unique
+  created_At DateTime @default(now())
+  updated_At DateTime @updatedAt
+  user_id Int
+  pan_number String @unique
+  adhar_number String @unique
+  gst_number String @unique
+  store_open DateTime? @default(now())
+  store_close DateTime? @default(now())
+  store_status StoreStatus @default(open)
+  store_type StoreType @default(retail)
+  user user @relation(fields: [user_id], references: [id])
+  cart cart[]
+}
+enum StoreStatus{
+  open
+  close
+}
+enum StoreType{
+  retail
+  wholesale
+  online
+  other
+}
+
+model cart{
+  id Int @id @default(autoincrement())
+  user_id Int
+  user user @relation(fields: [user_id], references: [id])
+  store_id Int
+  store store @relation(fields: [store_id], references: [id])
+  created_At DateTime @default(now())
+  updated_At DateTime @updatedAt
+} 

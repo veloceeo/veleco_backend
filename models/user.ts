@@ -3,6 +3,10 @@ import { PrismaClient, Role } from "../db/generated/prisma";
 import jwt from "jsonwebtoken"
 import * as OTPAuth from "otpauth";
 import z from "zod";
+import dotenv from "dotenv";
+
+dotenv.config();
+
 declare global {
     namespace Express {
         interface Request {
@@ -16,7 +20,7 @@ let topo = new OTPAuth.TOTP({
     algorithm: "SHA1",
     digits: 6,
     period: 30,
-    secret: "123214123123"
+    secret: "JBSWY3DPEHPK3PXP"
 });
 
 const otpSchema = z.object({
@@ -27,7 +31,7 @@ const signupSchema = z.object({
     password: z.string(),
     name: z.string(),
     phone: z.string(),
-    role: z.array(z.nativeEnum(Role))
+    role: z.nativeEnum(Role)
 })
 const loginSchema = z.object({
     email: z.string().email(),
@@ -40,7 +44,7 @@ user.use(express.json());
 const prisma = new PrismaClient()
 
 // Middleware to verify JWT token
-const authMiddleware = (req: express.Request, res: express.Response, next: express.NextFunction): void => {
+export const authMiddleware = (req: express.Request, res: express.Response, next: express.NextFunction): void => {
     const header = req.headers['auth'] as string;
 
     if (!header) {
@@ -49,7 +53,7 @@ const authMiddleware = (req: express.Request, res: express.Response, next: expre
     }
 
     try {
-        const decode = jwt.verify(header, "hello") as any;
+        const decode = jwt.verify(header, process.env.JWT_SECRET || "hello") as any;
         req.userId = decode.id;
         next();
     } catch (error) {
@@ -120,12 +124,12 @@ user.post("/signup", async (req, res) => {
                 name,
                 password,
                 phone,
-                role: role as Role[],
+                role,
                 created_At: new Date()
             }
         });
 
-        const token = jwt.sign({ id: user.id, email: user.email }, "hello");
+        const token = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET || "hello");
         res.send({ token, user });
     } catch (error) {
         res.status(400).json({ error: 'Failed to create user' });

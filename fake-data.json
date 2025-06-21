@@ -1,92 +1,158 @@
-[
-  {
-    "id": 1,
-    "email": "john.doe@example.com",
-    "password": "hashedPassword123",
-    "name": "John Doe",
-    "phone": "+1-555-0123",
-    "created_At": "2024-01-15T10:30:00Z",
-    "role": ["customer"]
-  },
-  {
-    "id": 2,
-    "email": "jane.smith@example.com",
-    "password": "hashedPassword456",
-    "name": "Jane Smith",
-    "phone": "+1-555-0124",
-    "created_At": "2024-01-16T14:20:00Z",
-    "role": ["seller"]
-  },
-  {
-    "id": 3,
-    "email": "admin@example.com",
-    "password": "hashedPassword789",
-    "name": "Admin User",
-    "phone": "+1-555-0125",
-    "created_At": "2024-01-10T09:15:00Z",
-    "role": ["admin"]
-  },
-  {
-    "id": 4,
-    "email": "mike.wilson@example.com",
-    "password": "hashedPassword101",
-    "name": "Mike Wilson",
-    "phone": "+1-555-0126",
-    "created_At": "2024-01-18T16:45:00Z",
-    "role": ["customer", "seller"]
-  },
-  {
-    "id": 5,
-    "email": "sarah.jones@example.com",
-    "password": "hashedPassword202",
-    "name": "Sarah Jones",
-    "phone": "+1-555-0127",
-    "created_At": "2024-01-20T11:30:00Z",
-    "role": ["customer"]
-  },
-  {
-    "id": 6,
-    "email": "david.brown@example.com",
-    "password": "hashedPassword303",
-    "name": "David Brown",
-    "phone": "+1-555-0128",
-    "created_At": "2024-01-22T13:20:00Z",
-    "role": ["seller"]
-  },
-  {
-    "id": 7,
-    "email": "emma.davis@example.com",
-    "password": "hashedPassword404",
-    "name": "Emma Davis",
-    "phone": "+1-555-0129",
-    "created_At": "2024-01-25T08:45:00Z",
-    "role": ["customer"]
-  },
-  {
-    "id": 8,
-    "email": "alex.taylor@example.com",
-    "password": "hashedPassword505",
-    "name": "Alex Taylor",
-    "phone": "+1-555-0130",
-    "created_At": "2024-01-28T15:10:00Z",
-    "role": ["seller", "admin"]
-  },
-  {
-    "id": 9,
-    "email": "lisa.garcia@example.com",
-    "password": "hashedPassword606",
-    "name": "Lisa Garcia",
-    "phone": "+1-555-0131",
-    "created_At": "2024-02-01T12:00:00Z",
-    "role": ["customer"]
-  },
-  {
-    "id": 10,
-    "email": "robert.martinez@example.com",
-    "password": "hashedPassword707",
-    "name": "Robert Martinez",
-    "phone": "+1-555-0132",
-    "created_At": "2024-02-03T17:30:00Z",
-    "role": ["seller"]
-  }
-] 
+{
+  "users": [
+    {
+      "id": 1,
+      "email": "john.doe@example.com",
+      "password": "hashedPassword123",
+      "name": "John Doe",
+      "phone": "+91-9876543210",
+      "created_At": "2024-01-15T10:30:00Z",
+      "role": ["customer"]
+    },
+    {
+      "id": 2,
+      "email": "jane.smith@example.com",
+      "password": "hashedPassword456",
+      "name": "Jane Smith",
+      "phone": "+91-9876543211",
+      "created_At": "2024-01-20T14:45:00Z",
+      "role": ["seller"]
+    },
+    {
+      "id": 3,
+      "email": "admin@ecommerce.com",
+      "password": "hashedPassword789",
+      "name": "Admin User",
+      "phone": "+91-9876543212",
+      "created_At": "2024-01-10T09:00:00Z",
+      "role": ["admin"]
+    },
+    {
+      "id": 4,
+      "email": "mike.wilson@example.com",
+      "password": "hashedPassword101",
+      "name": "Mike Wilson",
+      "phone": "+91-9876543213",
+      "created_At": "2024-02-01T11:20:00Z",
+      "role": ["customer", "seller"]
+    },
+    {
+      "id": 5,
+      "email": "sarah.jones@example.com",
+      "password": "hashedPassword202",
+      "name": "Sarah Jones",
+      "phone": "+91-9876543214",
+      "created_At": "2024-02-05T16:15:00Z",
+      "role": ["customer"]
+    },
+    {
+      "id": 6,
+      "email": "robert.chen@example.com",
+      "password": "hashedPassword303",
+      "name": "Robert Chen",
+      "phone": "+91-9876543215",
+      "created_At": "2024-02-10T13:30:00Z",
+      "role": ["seller"]
+    },
+    {
+      "id": 7,
+      "email": "lisa.garcia@example.com",
+      "password": "hashedPassword404",
+      "name": "Lisa Garcia",
+      "phone": "+91-9876543216",
+      "created_At": "2024-02-15T08:45:00Z",
+      "role": ["customer"]
+    },
+    {
+      "id": 8,
+      "email": "david.kumar@example.com",
+      "password": "hashedPassword505",
+      "name": "David Kumar",
+      "phone": "+91-9876543217",
+      "created_At": "2024-02-20T12:00:00Z",
+      "role": ["seller"]
+    }
+  ],
+  "stores": [
+    {
+      "id": 1,
+      "name": "Tech Gadgets Store",
+      "address": "123 Main Street, Bangalore, Karnataka 560001",
+      "phone": "+91-9876543220",
+      "email": "techgadgets@example.com",
+      "created_At": "2024-01-25T10:00:00Z",
+      "updated_At": "2024-03-01T15:30:00Z",
+      "user_id": 2,
+      "pan_number": "ABCDE1234F",
+      "adhar_number": "123456789012",
+      "gst_number": "29ABCDE1234F1Z5",
+      "store_open": "2024-01-25T09:00:00Z",
+      "store_close": "2024-01-25T18:00:00Z",
+      "store_status": "open"
+    },
+    {
+      "id": 2,
+      "name": "Fashion Boutique",
+      "address": "456 Park Avenue, Mumbai, Maharashtra 400001",
+      "phone": "+91-9876543221",
+      "email": "fashionboutique@example.com",
+      "created_At": "2024-02-01T11:00:00Z",
+      "updated_At": "2024-03-01T16:45:00Z",
+      "user_id": 4,
+      "pan_number": "FGHIJ5678K",
+      "adhar_number": "234567890123",
+      "gst_number": "27FGHIJ5678K2Z6",
+      "store_open": "2024-02-01T10:00:00Z",
+      "store_close": "2024-02-01T20:00:00Z",
+      "store_status": "open"
+    },
+    {
+      "id": 3,
+      "name": "Home Decor Plus",
+      "address": "789 Lake Road, Delhi, Delhi 110001",
+      "phone": "+91-9876543222",
+      "email": "homedecor@example.com",
+      "created_At": "2024-02-10T14:00:00Z",
+      "updated_At": "2024-03-01T17:20:00Z",
+      "user_id": 6,
+      "pan_number": "KLMNO9012P",
+      "adhar_number": "345678901234",
+      "gst_number": "07KLMNO9012P3Z7",
+      "store_open": "2024-02-10T09:00:00Z",
+      "store_close": "2024-02-10T19:00:00Z",
+      "store_status": "open"
+    },
+    {
+      "id": 4,
+      "name": "Sports Equipment Hub",
+      "address": "321 Stadium Street, Chennai, Tamil Nadu 600001",
+      "phone": "+91-9876543223",
+      "email": "sportshub@example.com",
+      "created_At": "2024-02-15T16:00:00Z",
+      "updated_At": "2024-03-01T18:10:00Z",
+      "user_id": 8,
+      "pan_number": "PQRST3456U",
+      "adhar_number": "456789012345",
+      "gst_number": "33PQRST3456U4Z8",
+      "store_open": "2024-02-15T08:00:00Z",
+      "store_close": "2024-02-15T21:00:00Z",
+      "store_status": "close"
+    },
+    {
+      "id": 5,
+      "name": "Book World",
+      "address": "654 Library Lane, Kolkata, West Bengal 700001",
+      "phone": "+91-9876543224",
+      "email": "bookworld@example.com",
+      "created_At": "2024-02-20T12:00:00Z",
+      "updated_At": "2024-03-01T19:00:00Z",
+      "user_id": 2,
+      "pan_number": "UVWXY6789Z",
+      "adhar_number": "567890123456",
+      "gst_number": "19UVWXY6789Z5Z9",
+      "store_open": "2024-02-20T10:00:00Z",
+      "store_close": "2024-02-20T22:00:00Z",
+      "store_status": "open"
+    }
+  ]
+} 
