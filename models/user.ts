@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken"
 import * as OTPAuth from "otpauth";
 import z from "zod";
 import dotenv from "dotenv";
+import { authMiddleware } from "./auth/middleware";
 
 dotenv.config();
 
@@ -44,23 +45,7 @@ user.use(express.json());
 const prisma = new PrismaClient()
 
 // Middleware to verify JWT token
-export const authMiddleware = (req: express.Request, res: express.Response, next: express.NextFunction): void => {
-    const header = req.headers['auth'] as string;
 
-    if (!header) {
-        res.status(401).json({ error: 'No auth token provided' });
-        return;
-    }
-
-    try {
-        const decode = jwt.verify(header, process.env.JWT_SECRET || "hello") as any;
-        req.userId = decode.id;
-        next();
-    } catch (error) {
-        res.status(401).json({ error: 'Invalid auth token' });
-        return;
-    }
-};
 const generateOtp = () => {
     const otp = topo.generate();
     console.log(otp);
@@ -143,6 +128,7 @@ user.get("/", authMiddleware, (req, res) => {
 
 
 user.put("/forget", async (req, res) => {
+    try{
     const { email, password } = loginSchema.parse(req.body);
     const user = await prisma.user.update({
         where: {
@@ -154,5 +140,9 @@ user.put("/forget", async (req, res) => {
 
     })
     res.json({ message: "update password", user: user.email });
+}
+catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
+}
 })
 export default user;

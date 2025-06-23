@@ -1,0 +1,360 @@
+{
+  "cart_item_test_data": {
+    "add_to_cart": [
+      {
+        "productId": 1,
+        "quantity": 2,
+        "storeId": 1
+      },
+      {
+        "productId": 2,
+        "quantity": 1,
+        "storeId": 1
+      },
+      {
+        "productId": 3,
+        "quantity": 3,
+        "storeId": 2
+      },
+      {
+        "productId": 4,
+        "quantity": 1,
+        "storeId": 2
+      },
+      {
+        "productId": 5,
+        "quantity": 2,
+        "storeId": 1
+      }
+    ],
+    "update_quantity": [
+      {
+        "quantity": 5
+      },
+      {
+        "quantity": 1
+      },
+      {
+        "quantity": 10
+      }
+    ],
+    "sample_cart_items_response": [
+      {
+        "id": 1,
+        "cart_id": 1,
+        "product_id": 1,
+        "quantity": 2,
+        "price_at_time": 79,
+        "created_At": "2025-06-23T10:30:00.000Z",
+        "updated_At": "2025-06-23T10:30:00.000Z",
+        "product": {
+          "id": 1,
+          "product_name": "Wireless Bluetooth Headphones",
+          "price": 79,
+          "product_img": ["https://example.com/headphones1.jpg"],
+          "category": "Electronics",
+          "stock": 45
+        },
+        "cart": {
+          "id": 1,
+          "total_amount": 158,
+          "store_id": 1
+        }
+      },
+      {
+        "id": 2,
+        "cart_id": 1,
+        "product_id": 2,
+        "quantity": 1,
+        "price_at_time": 25,
+        "created_At": "2025-06-23T10:35:00.000Z",
+        "updated_At": "2025-06-23T10:35:00.000Z",
+        "product": {
+          "id": 2,
+          "product_name": "Organic Cotton T-Shirt",
+          "price": 25,
+          "product_img": ["https://example.com/tshirt1.jpg"],
+          "category": "Clothing",
+          "stock": 87
+        },
+        "cart": {
+          "id": 1,
+          "total_amount": 183,
+          "store_id": 1
+        }
+      },
+      {
+        "id": 3,
+        "cart_id": 2,
+        "product_id": 3,
+        "quantity": 3,
+        "price_at_time": 45,
+        "created_At": "2025-06-23T11:00:00.000Z",
+        "updated_At": "2025-06-23T11:00:00.000Z",
+        "product": {
+          "id": 3,
+          "product_name": "Smart Water Bottle",
+          "price": 45,
+          "product_img": ["https://example.com/bottle1.jpg"],
+          "category": "Fitness",
+          "stock": 22
+        },
+        "cart": {
+          "id": 2,
+          "total_amount": 135,
+          "store_id": 2
+        }
+      }
+    ]
+  },
+  "api_endpoints_usage": {
+    "get_all_cart_items": {
+      "method": "GET",
+      "endpoint": "/cart-items/",
+      "headers": {
+        "Authorization": "Bearer YOUR_TOKEN"
+      },
+      "description": "Get all cart items for authenticated user"
+    },
+    "get_cart_items_by_cart": {
+      "method": "GET",
+      "endpoint": "/cart-items/cart/:cartId",
+      "headers": {
+        "Authorization": "Bearer YOUR_TOKEN"  
+      },
+      "example": "/cart-items/cart/1",
+      "description": "Get all items in a specific cart"
+    },
+    "get_cart_item_by_id": {
+      "method": "GET",
+      "endpoint": "/cart-items/:id",
+      "headers": {
+        "Authorization": "Bearer YOUR_TOKEN"
+      },
+      "example": "/cart-items/1",
+      "description": "Get specific cart item details"
+    },
+    "add_item_to_cart": {
+      "method": "POST",
+      "endpoint": "/cart-items/add",
+      "headers": {
+        "Authorization": "Bearer YOUR_TOKEN",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "productId": 1,
+        "quantity": 2,
+        "storeId": 1
+      },
+      "description": "Add item to cart or update quantity if exists"
+    },
+    "update_cart_item": {
+      "method": "PUT",
+      "endpoint": "/cart-items/:id",
+      "headers": {
+        "Authorization": "Bearer YOUR_TOKEN",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "quantity": 5
+      },
+      "example": "/cart-items/1",
+      "description": "Update cart item quantity"
+    },
+    "remove_cart_item": {
+      "method": "DELETE",
+      "endpoint": "/cart-items/:id",
+      "headers": {
+        "Authorization": "Bearer YOUR_TOKEN"
+      },
+      "example": "/cart-items/1",
+      "description": "Remove specific item from cart"
+    },
+    "clear_all_carts": {
+      "method": "DELETE",
+      "endpoint": "/cart-items/clear/all",
+      "headers": {
+        "Authorization": "Bearer YOUR_TOKEN"
+      },
+      "description": "Clear all cart items for user"
+    },
+    "clear_specific_cart": {
+      "method": "DELETE",
+      "endpoint": "/cart-items/clear/:cartId",
+      "headers": {
+        "Authorization": "Bearer YOUR_TOKEN"
+      },
+      "example": "/cart-items/clear/1",
+      "description": "Clear all items from specific cart"
+    },
+    "get_cart_count": {
+      "method": "GET",
+      "endpoint": "/cart-items/count/total",
+      "headers": {
+        "Authorization": "Bearer YOUR_TOKEN"
+      },
+      "description": "Get total cart items count and quantity"
+    },
+    "check_product_in_cart": {
+      "method": "GET",
+      "endpoint": "/cart-items/product/:productId",
+      "headers": {
+        "Authorization": "Bearer YOUR_TOKEN"
+      },
+      "example": "/cart-items/product/1",
+      "description": "Check if product is in user's cart"
+    }
+  },
+  "test_scenarios": {
+    "scenario_1_add_multiple_items": {
+      "description": "Add multiple items to cart from same store",
+      "requests": [
+        {
+          "method": "POST",
+          "endpoint": "/cart-items/add",
+          "body": {
+            "productId": 1,
+            "quantity": 2,
+            "storeId": 1
+          }
+        },
+        {
+          "method": "POST", 
+          "endpoint": "/cart-items/add",
+          "body": {
+            "productId": 2,
+            "quantity": 1,
+            "storeId": 1
+          }
+        }
+      ]
+    },
+    "scenario_2_update_and_remove": {
+      "description": "Update item quantity then remove it",
+      "requests": [
+        {
+          "method": "PUT",
+          "endpoint": "/cart-items/1",
+          "body": {
+            "quantity": 5
+          }
+        },
+        {
+          "method": "DELETE",
+          "endpoint": "/cart-items/1"
+        }
+      ]
+    },
+    "scenario_3_cross_store_shopping": {
+      "description": "Add items from different stores",
+      "requests": [
+        {
+          "method": "POST",
+          "endpoint": "/cart-items/add", 
+          "body": {
+            "productId": 1,
+            "quantity": 1,
+            "storeId": 1
+          }
+        },
+        {
+          "method": "POST",
+          "endpoint": "/cart-items/add",
+          "body": {
+            "productId": 5,
+            "quantity": 2,
+            "storeId": 2
+          }
+        }
+      ]
+    },
+    "scenario_4_stock_validation": {
+      "description": "Test stock validation",
+      "requests": [
+        {
+          "method": "POST",
+          "endpoint": "/cart-items/add",
+          "body": {
+            "productId": 3,
+            "quantity": 100,
+            "storeId": 2
+          },
+          "expected_response": {
+            "error": "Insufficient stock. Only 22 items available"
+          }
+        }
+      ]
+    }
+  },
+  "response_examples": {
+    "successful_add": {
+      "message": "Item added to cart successfully",
+      "cartItem": {
+        "id": 1,
+        "cart_id": 1,
+        "product_id": 1,
+        "quantity": 2,
+        "price_at_time": 79,
+        "created_At": "2025-06-23T10:30:00.000Z",
+        "updated_At": "2025-06-23T10:30:00.000Z",
+        "product": {
+          "id": 1,
+          "product_name": "Wireless Bluetooth Headphones",
+          "price": 79,
+          "product_img": ["https://example.com/headphones1.jpg"],
+          "category": "Electronics",
+          "stock": 45
+        }
+      },
+      "cartTotal": 158
+    },
+    "cart_items_list": {
+      "message": "Cart items fetched successfully",
+      "items": [
+        {
+          "id": 1,
+          "cart_id": 1,
+          "product_id": 1,
+          "quantity": 2,
+          "price_at_time": 79,
+          "created_At": "2025-06-23T10:30:00.000Z",
+          "updated_At": "2025-06-23T10:30:00.000Z",
+          "product": {
+            "id": 1,
+            "product_name": "Wireless Bluetooth Headphones",
+            "price": 79,
+            "product_img": ["https://example.com/headphones1.jpg"],
+            "category": "Electronics",
+            "stock": 45
+          },
+          "cart": {
+            "id": 1,
+            "total_amount": 183,
+            "store_id": 1
+          }
+        }
+      ],
+      "totalItems": 1,
+      "totalAmount": 158
+    },
+    "cart_count": {
+      "message": "Cart count fetched successfully",
+      "totalUniqueItems": 3,
+      "totalQuantity": 6
+    },
+    "error_responses": {
+      "insufficient_stock": {
+        "error": "Insufficient stock. Only 22 items available"
+      },
+      "product_not_found": {
+        "error": "Product not found"
+      },
+      "unauthorized": {
+        "error": "Unauthorized access"
+      },
+      "validation_error": {
+        "error": "productId, quantity, and storeId are required"
+      }
+    }
+  }
+}
