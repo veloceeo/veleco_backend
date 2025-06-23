@@ -14,97 +14,143 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model user{
-  id  Int @id @default(autoincrement())
-  email String @unique
-  password String
-  name String?
-  phone String
-  created_At DateTime ?
-  role Role @default(customer)
-  store store[]
-  cart cart[]
+model user {
+  id         Int       @id @default(autoincrement())
+  email      String    @unique
+  password   String
+  name       String?
+  phone      String
+  created_At DateTime?
+  role       Role      @default(customer)
+  store      store[]
+  cart       cart[]
+  pincode    String?
+  latitude   Float?
+  longitude  Float?
+  order orders[]
 }
 
-enum Role{
+enum Role {
   customer
   seller
   admin
 }
 
-model store{
-  id Int @id @default(autoincrement())
-  name String
-  address String
-  phone String
-  email String @unique
-  created_At DateTime @default(now())
-  updated_At DateTime @updatedAt
-  user_id Int
-  pan_number String @unique
-  adhar_number String @unique
-  gst_number String @unique
-  store_open DateTime? @default(now())
-  store_close DateTime? @default(now())
+model store {
+  id           Int         @id @default(autoincrement())
+  name         String
+  address      String
+  phone        String
+  email        String      @unique
+  created_At   DateTime    @default(now())
+  updated_At   DateTime    @updatedAt
+  user_id      Int
+  pan_number   String      @unique
+  adhar_number String      @unique
+  gst_number   String      @unique
+  store_open   DateTime?   @default(now())
+  store_close  DateTime?   @default(now())
   store_status StoreStatus @default(open)
-  store_type StoreType @default(retail)
-  user user @relation(fields: [user_id], references: [id])
-  cart cart[]
-  product product[]
+  store_type   StoreType   @default(retail)
+  user         user        @relation(fields: [user_id], references: [id])
+  cart         cart[]
+  product      product[]
+  longitude    Float
+  latitude     Float
+  order orders[]
 }
-enum StoreStatus{
+
+enum StoreStatus {
   open
   close
 }
-enum StoreType{
+
+enum StoreType {
   retail
   wholesale
   online
   other
 }
 
-model cart{
-  id Int @id @default(autoincrement())
-  user_id Int
-  user user @relation(fields: [user_id], references: [id])
-  store_id Int
-  store store @relation(fields: [store_id], references: [id])
-  status CartStatus @default(active)
-  total_amount Int @default(0)
-  created_At DateTime @default(now())
-  updated_At DateTime @updatedAt
-  cart_items cart_item[]
-} 
+model cart {
+  id           Int         @id @default(autoincrement())
+  user_id      Int
+  user         user        @relation(fields: [user_id], references: [id])
+  store_id     Int
+  store        store       @relation(fields: [store_id], references: [id])
+  status       CartStatus  @default(active)
+  total_amount Int         @default(0)
+  created_At   DateTime    @default(now())
+  updated_At   DateTime    @updatedAt
+  cart_items   cart_item[]
+}
 
 model cart_item {
-  id Int @id @default(autoincrement())
-  cart_id Int
-  product_id Int
-  quantity Int @default(1)
-  price_at_time Int // Store price when added to cart
-  created_At DateTime @default(now())
-  updated_At DateTime @updatedAt
-  
-  cart cart @relation(fields: [cart_id], references: [id], onDelete: Cascade)
+  id            Int      @id @default(autoincrement())
+  cart_id       Int
+  product_id    Int
+  quantity      Int      @default(1)
+  price_at_time Int
+  created_At    DateTime @default(now())
+  updated_At    DateTime @updatedAt
+  cart    cart    @relation(fields: [cart_id], references: [id], onDelete: Cascade)
   product product @relation(fields: [product_id], references: [id], onDelete: Cascade)
-  
+
   @@unique([cart_id, product_id]) // Prevent duplicate products in same cart
 }
 
-model product{
-  id Int @id @default(autoincrement())
+model product {
+  id           Int         @id @default(autoincrement())
   product_name String
-  price Int
-  product_img String []
-  quantity Int
-  category String
-  stock Int
-  store_id Int
-  store store @relation(fields: [store_id], references: [id])
-  cart_items cart_item[]
+  price        Int
+  product_img  String[]
+  quantity     Int
+  category     String
+  stock        Int
+  store_id     Int
+  store        store       @relation(fields: [store_id], references: [id])
+  cart_items   cart_item[]
+  latitude     Float
+  order order_item[]
 }
+
 enum CartStatus {
   active
   ordered
   abandoned
+}
+
+// orders Schema
+model orders {
+  id            Int         @id @default(autoincrement())
+  user_id       Int
+  user          user        @relation(fields: [user_id], references: [id])
+  store_id      Int
+  store         store       @relation(fields: [store_id], references: [id])
+  total_amount  Int
+  status        OrderStatus @default(PENDING)
+  tracking_link String?
+  placed_at     DateTime    @default(now())
+  updated_at    DateTime    @updatedAt
+  order_items   order_item[]
+}
+
+model order_item {
+  id         Int      @id @default(autoincrement())
+  order_id   Int
+  order      orders   @relation(fields: [order_id], references: [id], onDelete: Cascade)
+  product_id Int
+  product    product  @relation(fields: [product_id], references: [id])
+  quantity   Int
+  price      Int      // price at the time of order
+}
+
+enum OrderStatus {
+  PENDING          // Awaiting store approval
+  ACCEPTED         // Store accepted
+  REJECTED         // Store rejected
+  READY            // Store marked ready
+  OUT_FOR_DELIVERY // Sent to delivery company
+  DELIVERED        // Delivered to customer
+  CANCELLED
 }
