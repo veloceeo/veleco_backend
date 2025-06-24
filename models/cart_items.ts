@@ -1,9 +1,10 @@
 import express from 'express';
-import { PrismaClient } from "../db/generated/prisma";
 import { authMiddleware } from './auth/middleware';
+import { withAccelerate } from '@prisma/extension-accelerate'
+import { PrismaClient } from '../db/generated/prisma';
 
+const prisma = new PrismaClient().$extends(withAccelerate())
 const cart_items = express.Router();
-const prisma = new PrismaClient();
 
 // Add JSON parsing middleware
 cart_items.use(express.json());
@@ -54,7 +55,7 @@ cart_items.get("/", authMiddleware, async (req, res) => {
 });
 
 // Get cart items by cart ID
-cart_items.get("/cart/:cartId", authMiddleware, async (req, res) => {
+cart_items.get("/cart/:cartId", authMiddleware, async (req, res): Promise<void> => {
     try {
         const { cartId } = req.params;
 
@@ -63,11 +64,11 @@ cart_items.get("/cart/:cartId", authMiddleware, async (req, res) => {
             where: {
                 id: Number(cartId),
                 user_id: req.userId
-            }
-        });
+            }        });
 
         if (!cart) {
-            return res.status(404).json({ error: 'Cart not found or unauthorized' });
+            res.status(404).json({ error: 'Cart not found or unauthorized' });
+            return;
         }
 
         const cartItems = await prisma.cart_item.findMany({
@@ -95,7 +96,7 @@ cart_items.get("/cart/:cartId", authMiddleware, async (req, res) => {
 });
 
 // Get specific cart item by ID
-cart_items.get("/:id", authMiddleware, async (req, res) => {
+cart_items.get("/:id", authMiddleware, async (req, res): Promise<void> => {
     try {
         const { id } = req.params;
 
@@ -112,15 +113,15 @@ cart_items.get("/:id", authMiddleware, async (req, res) => {
                     }
                 }
             }
-        });
-
-        if (!cartItem) {
-            return res.status(404).json({ error: 'Cart item not found' });
+        });        if (!cartItem) {
+            res.status(404).json({ error: 'Cart item not found' });
+            return;
         }
 
         // Check if cart belongs to authenticated user
         if (cartItem.cart.user_id !== req.userId) {
-            return res.status(403).json({ error: 'Unauthorized access' });
+            res.status(403).json({ error: 'Unauthorized access' });
+            return;
         }
 
         res.json({
@@ -134,7 +135,7 @@ cart_items.get("/:id", authMiddleware, async (req, res) => {
 });
 
 // Add item to cart
-cart_items.post("/add", authMiddleware, async (req, res) => {
+cart_items.post("/add", authMiddleware, async (req, res): Promise<void> => {
     try {
         // Check if req.body exists and is an object
         if (!req.body || typeof req.body !== 'object') {
@@ -160,10 +161,8 @@ cart_items.post("/add", authMiddleware, async (req, res) => {
                 store_id: Number(store_id),
                 status: 'active'
             }
-        });
-
-        if (!cart) {
-             res.status(404).json({ error: 'Active cart not found for this store' });
+        });        if (!cart) {
+            return res.status(404).json({ error: 'Active cart not found for this store' });
         }
 
         const product = await prisma.product.findUnique({
@@ -181,7 +180,7 @@ cart_items.post("/add", authMiddleware, async (req, res) => {
         // Check if item already exists in cart
         const existingCartItem = await prisma.cart_item.findFirst({
             where: {
-                cart_id: cart.id,
+                cart_id: cart?.id,
                 product_id: Number(product_id)
             }
         });

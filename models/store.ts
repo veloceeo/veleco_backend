@@ -1,7 +1,7 @@
 import express from "express";
 import cloudinary, { UploadStream } from "cloudinary";
 import { PrismaClient } from "../db/generated/prisma";
-import { authMiddleware } from "../models/auth/middleware";
+import { authAdminMiddleware, authMiddleware } from "../models/auth/middleware";
 import multer from "multer";
 import dotenv from "dotenv";
 
@@ -53,45 +53,59 @@ const upload = multer({
 store.use(express.json());
 // Store Endpoints
 store.post("/create", authMiddleware, upload.single("file"), async (req, res) => {
-    const { name, address, phone, email, pan_number, adhar_number, gst_number, store_open, store_close, store_type } = req.body;
-    const store = await prisma.store.create({
-        data: {
-            name,
-            address,
-            phone,
-            email,
-            pan_number,
-            adhar_number,
-            gst_number,
-            store_open,
-            store_close,
-            store_type,
-            user_id: req.userId,
-            longitude: req.body.longitude || null,
-            latitude: req.body.latitude || null
-        },        select: {
-            name: true,
-            address: true,
-            phone: true,
-            email: true,
-            pan_number: true,
-            adhar_number: true,
-            gst_number: true,
-            store_open: true,
-            store_close: true,
-            store_type: true,
-            user_id: true,
-            latitude: true,
-            longitude: true
+    try {
+        const { name, address, phone, email, pan_number, adhar_number, gst_number, store_open, store_close, store_type } = req.body;
+
+        // Validate required fields
+        if (!name || !address || !phone || !email || !pan_number || !adhar_number || !gst_number) {
+            return res.status(400).json({ error: 'All required fields must be provided' });
         }
-    })
-    res.json({ message: "store created", store: store.name });
-})
-store.get("/", authMiddleware, async (req, res) => {
+
+        const store = await prisma.store.create({
+            data: {
+                name,
+                address,
+                phone,
+                email,
+                pan_number,
+                adhar_number,
+                gst_number,
+                store_open,
+                store_close,
+                store_type,
+                longitude: req.body.longitude,
+                latitude: req.body.latitude,
+                user: req.userId ? {
+                    connect: { id: req.userId as number }
+                } : undefined
+            }, select: {
+                name: true,
+                address: true,
+                phone: true,
+                email: true,
+                pan_number: true,
+                adhar_number: true,
+                gst_number: true,
+                store_open: true,
+                store_close: true,
+                store_type: true,
+                user_id: true,
+                latitude: true,
+                longitude: true
+            }
+        });
+
+        res.json({ message: "store created", store: store.name });
+    } catch (error) {
+        console.error('Error creating store:', error);
+        res.status(500).json({ error: 'Failed to create store' });
+    }
+});
+store.get("/", authAdminMiddleware, async (req, res) => {
     const store = await prisma.store.findFirst({
         where: {
             user_id: req.userId
-        },        select: {
+        }, select: {
             name: true,
             address: true,
             phone: true,
@@ -108,28 +122,29 @@ store.get("/", authMiddleware, async (req, res) => {
 })
 store.put("/update", authMiddleware, async (req, res) => {
     const store = await prisma.store.findFirst({
-        where: { user_id: req.userId as number },
-        select: {
+        where: { user_id: req.userId as number }, select: {
             id: true,
         }
-    })
+    });
+
     if (!store) {
-        res.status(404).json({ message: "Store not found" });
-        return;
-    }    const { name, address, phone, email, pan_number, adhar_number, gst_number, store_open, store_close, store_type, latitude, longitude } = req.body;
+        return res.status(404).json({ message: "Store not found" });
+    }
+
+    const { name, address, phone, email, pan_number, adhar_number, gst_number, store_open, store_close, store_type, latitude, longitude } = req.body;
 
     const updateStore = await prisma.store.update({
         where: { id: store.id },
-        data: { 
-            name, 
-            address, 
-            phone, 
-            email, 
-            pan_number, 
-            adhar_number, 
-            gst_number, 
-            store_open, 
-            store_close, 
+        data: {
+            name,
+            address,
+            phone,
+            email,
+            pan_number,
+            adhar_number,
+            gst_number,
+            store_open,
+            store_close,
             store_type,
             latitude: latitude || null,
             longitude: longitude || null
@@ -142,8 +157,8 @@ store.delete("/delete", authMiddleware, async (req, res) => {
     const storeToDelete = await prisma.store.findFirst({
         where: { user_id: req.userId as number },
         select: { id: true, name: true }
-    });    if (!storeToDelete) {
-         res.status(404).json({ message: "Store not found" });
+    }); if (!storeToDelete) {
+        res.status(404).json({ message: "Store not found" });
     }
 
     const deletedStore = await prisma.store.delete({
@@ -155,7 +170,8 @@ store.delete("/delete", authMiddleware, async (req, res) => {
 
 // Route to upload multiple files
 store.post("/files", authMiddleware, upload.array('files', 5), async (req, res) => {
-    try {        if (!req.files || req.files.length === 0) {
+    try {
+        if (!req.files || req.files.length === 0) {
             return res.status(400).json({ error: 'No files uploaded' });
         }
 
@@ -198,7 +214,7 @@ store.post("/files", authMiddleware, upload.array('files', 5), async (req, res) 
 store.post("/file", upload.single('file'), async (req, res) => {
     try {
         if (!req.file) {
-             res.status(400).json({ error: 'No file uploaded' });
+            res.status(400).json({ error: 'No file uploaded' });
         }
 
         // Upload to Cloudinary
@@ -222,8 +238,8 @@ store.post("/file", upload.single('file'), async (req, res) => {
             where: {
                 user_id: req.userId
             }
-        });        if (!existingStore) {
-             res.status(404).json({ error: 'Store not found for this user' });
+        }); if (!existingStore) {
+            res.status(404).json({ error: 'Store not found for this user' });
         }
 
         // Update the store with the uploaded file URL
@@ -276,7 +292,7 @@ store.post("/pan", upload.single('file'), async (req, res) => {
             );
 
             uploadStream.end(req.file!.buffer);
-        });        const existingPan = await prisma.store.findFirst({
+        }); const existingPan = await prisma.store.findFirst({
             where: {
                 user_id: req.userId
             }
@@ -303,7 +319,7 @@ store.post("/pan", upload.single('file'), async (req, res) => {
         console.log(e)
         res.send("Error");
     };
-  }  )
+})
 
 // Route to delete file from Cloudinary
 store.delete("/file/:cloudinaryId", authMiddleware, async (req, res) => {

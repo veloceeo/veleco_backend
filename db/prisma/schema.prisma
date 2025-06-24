@@ -28,6 +28,8 @@ model user {
   latitude   Float?
   longitude  Float?
   order orders[]
+  seller seller?
+  store_reviews store_review[]
 }
 
 enum Role {
@@ -58,6 +60,13 @@ model store {
   longitude    Float
   latitude     Float
   order orders[]
+  seller seller[]
+  seller_analytics seller_analytics[]
+  sales_reports sales_report[]
+  store_performance store_performance?
+  store_hours store_hours[]
+  inventory_alerts inventory_alert[]
+  store_reviews store_review[]
 }
 
 enum StoreStatus {
@@ -112,6 +121,9 @@ model product {
   cart_items   cart_item[]
   latitude     Float
   order order_item[]
+  best_selling_reports sales_report[]
+  worst_selling_reports sales_report[] @relation("WorstSellingProduct")
+  inventory_alerts inventory_alert[]
 }
 
 enum CartStatus {
@@ -133,6 +145,7 @@ model orders {
   placed_at     DateTime    @default(now())
   updated_at    DateTime    @updatedAt
   order_items   order_item[]
+  store_reviews store_review[]
 }
 
 model order_item {
@@ -154,3 +167,242 @@ enum OrderStatus {
   DELIVERED        // Delivered to customer
   CANCELLED
 }
+
+// ========== SELLER DASHBOARD SCHEMA ==========
+
+model seller {
+  id Int @id @default(autoincrement())
+  user_id Int @unique
+  user user @relation(fields: [user_id], references: [id])
+  store store[]
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  phone String
+  business_license String?
+  tax_id String?
+  is_verified Boolean @default(false)
+  verification_date DateTime?
+  dashboard_analytics seller_analytics[]
+  sales_reports sales_report[]
+}
+
+// Seller Dashboard Analytics - Tracks daily performance metrics
+model seller_analytics {
+  id Int @id @default(autoincrement())
+  seller_id Int
+  seller seller @relation(fields: [seller_id], references: [id], onDelete: Cascade)
+  store_id Int
+  store store @relation(fields: [store_id], references: [id], onDelete: Cascade)
+  date DateTime @default(now())
+  daily_sales_amount Int @default(0)          // Today's total sales
+  daily_orders_count Int @default(0)          // Number of orders today
+  daily_revenue Int @default(0)               // Revenue after costs
+  total_products_sold Int @default(0)         // Products sold today
+  total_customers_served Int @default(0)      // Unique customers today
+  average_order_value Float @default(0.0)     // AOV for today
+  inventory_count Int @default(0)             // Live inventory count
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@unique([seller_id, store_id, date])
+}
+
+// Sales Reports for detailed analytics and reporting
+model sales_report {
+  id Int @id @default(autoincrement())
+  seller_id Int
+  seller seller @relation(fields: [seller_id], references: [id], onDelete: Cascade)
+  store_id Int
+  store store @relation(fields: [store_id], references: [id], onDelete: Cascade)
+  report_type ReportType @default(DAILY)
+  start_date DateTime
+  end_date DateTime
+  total_sales_amount Int
+  total_orders Int
+  total_products_sold Int
+  total_customers Int
+  best_selling_product_id Int?
+  best_selling_product product? @relation(fields: [best_selling_product_id], references: [id])
+  worst_selling_product_id Int?
+  worst_selling_product product? @relation("WorstSellingProduct", fields: [worst_selling_product_id], references: [id])
+  profit_margin Float @default(0.0)
+  return_rate Float @default(0.0)
+  customer_satisfaction_score Float?
+  peak_sales_hour String?                     // Hour with most sales (e.g., "14:00")
+  slowest_sales_hour String?                  // Hour with least sales
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  report_data Json?                           // Additional analytics data as JSON
+}
+
+// Store Performance Metrics - Overall store health
+model store_performance {
+  id Int @id @default(autoincrement())
+  store_id Int @unique
+  store store @relation(fields: [store_id], references: [id], onDelete: Cascade)
+  total_lifetime_sales Int @default(0)
+  total_lifetime_orders Int @default(0)
+  total_customers Int @default(0)
+  average_rating Float @default(0.0)
+  total_reviews Int @default(0)
+  inventory_turnover_rate Float @default(0.0)
+  last_sale_date DateTime?
+  peak_hours Json?                            // Store peak business hours as JSON
+  monthly_growth_rate Float @default(0.0)
+  customer_retention_rate Float @default(0.0)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+// Store Operating Hours - Manages store open/close times
+model store_hours {
+  id Int @id @default(autoincrement())
+  store_id Int
+  store store @relation(fields: [store_id], references: [id], onDelete: Cascade)
+  day_of_week Int                             // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+  is_open Boolean @default(true)
+  opening_time String?                        // Format: "HH:MM"
+  closing_time String?                        // Format: "HH:MM"
+  break_start_time String?                    // Optional break time
+  break_end_time String?
+  is_24_hours Boolean @default(false)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@unique([store_id, day_of_week])
+}
+
+// Dashboard Quick Actions Log - Tracks seller actions
+model dashboard_action_log {
+  id Int @id @default(autoincrement())
+  seller_id Int
+  store_id Int
+  action_type ActionType
+  action_description String
+  metadata Json?                              // Store additional action data
+  ip_address String?
+  user_agent String?
+  created_at DateTime @default(now())
+
+  @@index([seller_id, created_at])
+  @@index([store_id, created_at])
+}
+
+// Inventory Alerts - Low stock and other inventory alerts
+model inventory_alert {
+  id Int @id @default(autoincrement())
+  store_id Int
+  store store @relation(fields: [store_id], references: [id], onDelete: Cascade)
+  product_id Int
+  product product @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  alert_type AlertType @default(LOW_STOCK)
+  threshold_value Int                         // Stock level that triggers alert
+  current_value Int                           // Current stock level
+  is_resolved Boolean @default(false)
+  resolved_at DateTime?
+  message String?                             // Custom alert message
+  priority AlertPriority @default(MEDIUM)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@index([store_id, is_resolved])
+  @@index([store_id, priority])
+}
+
+// Customer Reviews for Store Performance
+model store_review {
+  id Int @id @default(autoincrement())
+  store_id Int
+  store store @relation(fields: [store_id], references: [id], onDelete: Cascade)
+  user_id Int
+  user user @relation(fields: [user_id], references: [id])
+  order_id Int?
+  order orders? @relation(fields: [order_id], references: [id])
+  rating Int                                  // 1-5 stars
+  review_text String?
+  is_verified Boolean @default(false)
+  is_featured Boolean @default(false)
+  helpful_count Int @default(0)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@unique([store_id, user_id, order_id])
+  @@index([store_id, rating])
+}
+
+// Dashboard Notifications - System notifications for sellers
+model dashboard_notification {
+  id Int @id @default(autoincrement())
+  seller_id Int
+  store_id Int
+  title String
+  message String
+  notification_type NotificationType @default(INFO)
+  is_read Boolean @default(false)
+  is_urgent Boolean @default(false)
+  action_url String?                          // URL for action button
+  action_text String?                         // Text for action button
+  expires_at DateTime?                        // Optional expiration
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@index([seller_id, is_read])
+  @@index([store_id, is_urgent])
+}
+
+// ========== ENUMS FOR SELLER DASHBOARD ==========
+
+enum ReportType {
+  DAILY
+  WEEKLY
+  MONTHLY
+  QUARTERLY
+  YEARLY
+  CUSTOM
+}
+
+enum ActionType {
+  PRODUCT_ADDED
+  PRODUCT_UPDATED
+  PRODUCT_DELETED
+  STORE_OPENED
+  STORE_CLOSED
+  STORE_SETTINGS_UPDATED
+  SALES_REPORT_GENERATED
+  INVENTORY_UPDATED
+  ORDER_STATUS_CHANGED
+  DISCOUNT_CREATED
+  PROMOTION_LAUNCHED
+  DASHBOARD_VIEWED
+  NOTIFICATION_READ
+}
+
+enum AlertType {
+  LOW_STOCK
+  OUT_OF_STOCK
+  HIGH_DEMAND
+  PRICE_CHANGE
+  EXPIRY_WARNING
+  QUALITY_ISSUE
+  REORDER_POINT
+}
+
+enum AlertPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum NotificationType {
+  INFO
+  SUCCESS
+  WARNING
+  ERROR
+  PROMOTION
+  ORDER_UPDATE
+  INVENTORY_ALERT
+  SYSTEM_UPDATE
+}
+
+
