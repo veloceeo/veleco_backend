@@ -115,7 +115,12 @@ user.post("/signup", async (req, res) => {
         });
 
         const token = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET || "hello");
+           if (user.role === Role.admin) {
+            console.log("Admin user created:", user.email);
+        }
+        
         res.send({ token, user });
+     
     } catch (error) {
         res.status(400).json({ error: 'Failed to create user' });
     }

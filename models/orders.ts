@@ -1,6 +1,6 @@
 import express from "express";
 import { PrismaClient } from "../db/generated/prisma";
-import { authMiddleware } from "./auth/middleware";
+import { authAdminMiddleware, authMiddleware } from "./auth/middleware";
 const order = express.Router();
 order.use(express.json());
 
@@ -30,7 +30,7 @@ order.get("/",authMiddleware, async (req, res) => {
 });
 
 // Create a new order
-order.post("/order", async (req, res) => {
+order.post("/order",authMiddleware ,async (req, res) => {
     try {
         const orderData = req.body;
         const newOrder = await prisma.orders.create({
@@ -38,7 +38,7 @@ order.post("/order", async (req, res) => {
             data: orderData,
             
         });
-        res.status(201).json(newOrder);
+        res.status(200).json(newOrder);
     } catch (error) {
         res.status(400).json({ error: "Failed to create order", details: error });
     }
@@ -86,6 +86,50 @@ order.delete("/:id", async (req, res) => {
     } catch (error) {
         res.status(400).json({ error: "Failed to delete order", details: error });
     }
+});
+
+// Admin route to get all orders
+
+order.post("/admin", authAdminMiddleware, async (req, res) => {
+    try {
+        const orderCheck = await prisma.orders.findMany();
+        if (!orderCheck || orderCheck.length === 0) {
+            return res.status(404).json({ error: "No orders found" });
+        }
+        res.json(orderCheck);
+
+    }
+catch (error) {
+        res.status(500).json({ error: "Failed to Accept ", details: error
+        });
+    }
+
+})
+
+
+order.get("/admin", authAdminMiddleware, async (req, res) => {
+    try {
+        const orders = await prisma.orders.findMany();
+        if (!orders || orders.length === 0) {
+            return res.status(404).json({ error: "No orders found" });
+        }
+        res.json(orders);
+    } catch (error) {
+        res.status(500).json({ error: "Failed to fetch orders", details: error });
+    }
+});
+
+order.post("/admin/order", authMiddleware, async (req, res) => {
+    try {
+        const orderData = req.body;
+        const newOrder = await prisma.orders.create({
+            data: orderData,
+        });
+        res.status(201).json(newOrder);
+    } catch (error) {
+        res.status(400).json({ error: "Failed to create order", details: error
+        });
+    }   
 });
 
 export default order;

@@ -1,0 +1,785 @@
+{
+  "info": {
+    "name": "Seller Dashboard API Collection",
+    "description": "Complete API collection for testing all seller dashboard endpoints",
+    "version": "1.0.0"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{auth_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000/api",
+      "type": "string"
+    },
+    {
+      "key": "auth_token",
+      "value": "your_jwt_token_here",
+      "type": "string"
+    },
+    {
+      "key": "seller_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "store_id",
+      "value": "1",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Seller Management",
+      "item": [
+        {
+          "name": "Create Seller Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"+1-555-0201\",\n  \"business_license\": \"BL-2024-TEST\",\n  \"tax_id\": \"TAX-TEST-2024\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/seller-dashboard/seller/create",
+              "host": ["{{base_url}}"],
+              "path": ["seller-dashboard", "seller", "create"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Seller Profile",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/seller-dashboard/seller/profile",
+              "host": ["{{base_url}}"],
+              "path": ["seller-dashboard", "seller", "profile"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Seller Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"+1-555-0202\",\n  \"business_license\": \"BL-2024-UPDATED\",\n  \"is_verified\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/seller-dashboard/seller/update",
+              "host": ["{{base_url}}"],
+              "path": ["seller-dashboard", "seller", "update"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Analytics",
+      "item": [
+        {
+          "name": "Get Dashboard Analytics",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/seller-dashboard/analytics/dashboard?store_id={{store_id}}&date=2024-06-24",
+              "host": ["{{base_url}}"],
+              "path": ["seller-dashboard", "analytics", "dashboard"],
+              "query": [
+                {
+                  "key": "store_id",
+                  "value": "{{store_id}}"
+                },
+                {
+                  "key": "date",
+                  "value": "2024-06-24"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Analytics Range",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/seller-dashboard/analytics/range?store_id={{store_id}}&start_date=2024-06-17&end_date=2024-06-24",
+              "host": ["{{base_url}}"],
+              "path": ["seller-dashboard", "analytics", "range"],
+              "query": [
+                {
+                  "key": "store_id",
+                  "value": "{{store_id}}"
+                },
+                {
+                  "key": "start_date",
+                  "value": "2024-06-17"
+                },
+                {
+                  "key": "end_date",
+                  "value": "2024-06-24"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Sales Reports",
+      "item": [
+        {
+          "name": "Generate Daily Report",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"store_id\": {{store_id}},\n  \"report_type\": \"DAILY\",\n  \"custom_data\": {\n    \"include_charts\": true,\n    \"weather_impact\": \"sunny\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/seller-dashboard/reports/generate",
+              "host": ["{{base_url}}"],
+              "path": ["seller-dashboard", "reports", "generate"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Generate Weekly Report",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"store_id\": {{store_id}},\n  \"report_type\": \"WEEKLY\",\n  \"custom_data\": {\n    \"promotional_events\": [\"weekend_sale\", \"flash_discount\"]\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/seller-dashboard/reports/generate",
+              "host": ["{{base_url}}"],
+              "path": ["seller-dashboard", "reports", "generate"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Generate Custom Report",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"store_id\": {{store_id}},\n  \"report_type\": \"CUSTOM\",\n  \"start_date\": \"2024-06-01\",\n  \"end_date\": \"2024-06-24\",\n  \"custom_data\": {\n    \"comparison_period\": \"previous_month\",\n    \"include_competitor_analysis\": true\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/seller-dashboard/reports/generate",
+              "host": ["{{base_url}}"],
+              "path": ["seller-dashboard", "reports", "generate"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Reports",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/seller-dashboard/reports?store_id={{store_id}}&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["seller-dashboard", "reports"],
+              "query": [
+                {
+                  "key": "store_id",
+                  "value": "{{store_id}}"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Reports by Type",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/seller-dashboard/reports?store_id={{store_id}}&report_type=WEEKLY&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["seller-dashboard", "reports"],
+              "query": [
+                {
+                  "key": "store_id",
+                  "value": "{{store_id}}"
+                },
+                {
+                  "key": "report_type",
+                  "value": "WEEKLY"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Store Performance",
+      "item": [
+        {
+          "name": "Get Store Performance",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/seller-dashboard/performance/{{store_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["seller-dashboard", "performance", "{{store_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Store Performance",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monthly_growth_rate\": 18.5,\n  \"customer_retention_rate\": 75.2,\n  \"inventory_turnover_rate\": 14.8\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/seller-dashboard/performance/{{store_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["seller-dashboard", "performance", "{{store_id}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Store Hours",
+      "item": [
+        {
+          "name": "Get Store Hours",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/seller-dashboard-extended/store-hours/{{store_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["seller-dashboard-extended", "store-hours", "{{store_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Store Hours",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"hours\": [\n    {\n      \"day_of_week\": 1,\n      \"is_open\": true,\n      \"opening_time\": \"08:00\",\n      \"closing_time\": \"20:00\",\n      \"break_start_time\": \"12:00\",\n      \"break_end_time\": \"13:00\",\n      \"is_24_hours\": false\n    },\n    {\n      \"day_of_week\": 2,\n      \"is_open\": true,\n      \"opening_time\": \"08:00\",\n      \"closing_time\": \"20:00\",\n      \"break_start_time\": \"12:00\",\n      \"break_end_time\": \"13:00\",\n      \"is_24_hours\": false\n    },\n    {\n      \"day_of_week\": 0,\n      \"is_open\": false,\n      \"opening_time\": null,\n      \"closing_time\": null,\n      \"is_24_hours\": false\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/seller-dashboard-extended/store-hours/{{store_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["seller-dashboard-extended", "store-hours", "{{store_id}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Inventory Alerts",
+      "item": [
+        {
+          "name": "Get All Alerts",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/seller-dashboard-extended/alerts/{{store_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["seller-dashboard-extended", "alerts", "{{store_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Unresolved Alerts",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/seller-dashboard-extended/alerts/{{store_id}}?is_resolved=false",
+              "host": ["{{base_url}}"],
+              "path": ["seller-dashboard-extended", "alerts", "{{store_id}}"],
+              "query": [
+                {
+                  "key": "is_resolved",
+                  "value": "false"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Critical Alerts",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/seller-dashboard-extended/alerts/{{store_id}}?priority=CRITICAL&is_resolved=false",
+              "host": ["{{base_url}}"],
+              "path": ["seller-dashboard-extended", "alerts", "{{store_id}}"],
+              "query": [
+                {
+                  "key": "priority",
+                  "value": "CRITICAL"
+                },
+                {
+                  "key": "is_resolved",
+                  "value": "false"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Alert",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"store_id\": {{store_id}},\n  \"product_id\": 1,\n  \"alert_type\": \"LOW_STOCK\",\n  \"threshold_value\": 5,\n  \"message\": \"Premium Headphones stock is running low\",\n  \"priority\": \"HIGH\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/seller-dashboard-extended/alerts",
+              "host": ["{{base_url}}"],
+              "path": ["seller-dashboard-extended", "alerts"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Resolve Alert",
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "{{base_url}}/seller-dashboard-extended/alerts/1/resolve",
+              "host": ["{{base_url}}"],
+              "path": ["seller-dashboard-extended", "alerts", "1", "resolve"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Store Reviews",
+      "item": [
+        {
+          "name": "Get All Reviews",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/seller-dashboard-extended/reviews/{{store_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["seller-dashboard-extended", "reviews", "{{store_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get 5-Star Reviews",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/seller-dashboard-extended/reviews/{{store_id}}?rating=5&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["seller-dashboard-extended", "reviews", "{{store_id}}"],
+              "query": [
+                {
+                  "key": "rating",
+                  "value": "5"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Verified Reviews",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/seller-dashboard-extended/reviews/{{store_id}}?is_verified=true&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["seller-dashboard-extended", "reviews", "{{store_id}}"],
+              "query": [
+                {
+                  "key": "is_verified",
+                  "value": "true"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Feature Review",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_featured\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/seller-dashboard-extended/reviews/1/feature",
+              "host": ["{{base_url}}"],
+              "path": ["seller-dashboard-extended", "reviews", "1", "feature"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "Get All Notifications",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/seller-dashboard-extended/notifications",
+              "host": ["{{base_url}}"],
+              "path": ["seller-dashboard-extended", "notifications"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Unread Notifications",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/seller-dashboard-extended/notifications?is_read=false",
+              "host": ["{{base_url}}"],
+              "path": ["seller-dashboard-extended", "notifications"],
+              "query": [
+                {
+                  "key": "is_read",
+                  "value": "false"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Urgent Notifications",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/seller-dashboard-extended/notifications?is_urgent=true&is_read=false",
+              "host": ["{{base_url}}"],
+              "path": ["seller-dashboard-extended", "notifications"],
+              "query": [
+                {
+                  "key": "is_urgent",
+                  "value": "true"
+                },
+                {
+                  "key": "is_read",
+                  "value": "false"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Notification",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"store_id\": {{store_id}},\n  \"title\": \"Flash Sale Alert\",\n  \"message\": \"Your 24-hour flash sale starts in 1 hour! Get ready for increased traffic.\",\n  \"notification_type\": \"PROMOTION\",\n  \"is_urgent\": true,\n  \"action_url\": \"/promotions/flash-sale\",\n  \"action_text\": \"View Sale Details\",\n  \"expires_at\": \"2024-06-26T23:59:59Z\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/seller-dashboard-extended/notifications",
+              "host": ["{{base_url}}"],
+              "path": ["seller-dashboard-extended", "notifications"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Mark Notification as Read",
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "{{base_url}}/seller-dashboard-extended/notifications/1/read",
+              "host": ["{{base_url}}"],
+              "path": ["seller-dashboard-extended", "notifications", "1", "read"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Mark All as Read",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"store_id\": {{store_id}}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/seller-dashboard-extended/notifications/read-all",
+              "host": ["{{base_url}}"],
+              "path": ["seller-dashboard-extended", "notifications", "read-all"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Action Logs",
+      "item": [
+        {
+          "name": "Log Action",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"store_id\": {{store_id}},\n  \"action_type\": \"PRODUCT_UPDATED\",\n  \"action_description\": \"Updated product price for competitive advantage\",\n  \"metadata\": {\n    \"product_id\": 1,\n    \"old_price\": 299,\n    \"new_price\": 279,\n    \"reason\": \"competitor_pricing\",\n    \"competitor_price\": 275\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/seller-dashboard-extended/actions/log",
+              "host": ["{{base_url}}"],
+              "path": ["seller-dashboard-extended", "actions", "log"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Action Logs",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/seller-dashboard-extended/actions/logs",
+              "host": ["{{base_url}}"],
+              "path": ["seller-dashboard-extended", "actions", "logs"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Logs by Store",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/seller-dashboard-extended/actions/logs?store_id={{store_id}}&limit=25",
+              "host": ["{{base_url}}"],
+              "path": ["seller-dashboard-extended", "actions", "logs"],
+              "query": [
+                {
+                  "key": "store_id",
+                  "value": "{{store_id}}"
+                },
+                {
+                  "key": "limit",
+                  "value": "25"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Logs by Action Type",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/seller-dashboard-extended/actions/logs?action_type=PRODUCT_UPDATED&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["seller-dashboard-extended", "actions", "logs"],
+              "query": [
+                {
+                  "key": "action_type",
+                  "value": "PRODUCT_UPDATED"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Logs by Date Range",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/seller-dashboard-extended/actions/logs?start_date=2024-06-20&end_date=2024-06-24&limit=50",
+              "host": ["{{base_url}}"],
+              "path": ["seller-dashboard-extended", "actions", "logs"],
+              "query": [
+                {
+                  "key": "start_date",
+                  "value": "2024-06-20"
+                },
+                {
+                  "key": "end_date",
+                  "value": "2024-06-24"
+                },
+                {
+                  "key": "limit",
+                  "value": "50"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Auto-set timestamps for dynamic testing",
+          "pm.globals.set('current_date', new Date().toISOString().split('T')[0]);",
+          "pm.globals.set('current_datetime', new Date().toISOString());",
+          "",
+          "// Generate random test data",
+          "pm.globals.set('random_phone', '+1-555-' + Math.floor(Math.random() * 9000 + 1000));",
+          "pm.globals.set('random_price', Math.floor(Math.random() * 500 + 50));"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Common test assertions",
+          "pm.test('Status code is successful', function () {",
+          "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+          "});",
+          "",
+          "pm.test('Response has message field', function () {",
+          "    pm.expect(pm.response.json()).to.have.property('message');",
+          "});",
+          "",
+          "pm.test('Response time is reasonable', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+          "});"
+        ]
+      }
+    }
+  ]
+}

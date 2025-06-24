@@ -1,0 +1,386 @@
+{
+  "products_fake_data": {
+    "description": "Comprehensive fake data for testing product endpoints",
+    "add_product_samples": [
+      {
+        "product_name": "iPhone 15 Pro Max",
+        "price": "1199",
+        "product_img": [
+          "https://images.unsplash.com/photo-1592750475338-74b7b21085ab",
+          "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9"
+        ],
+        "quantity": "50",
+        "category": "Electronics",
+        "stock": "50"
+      },
+      {
+        "product_name": "Samsung Galaxy S24 Ultra",
+        "price": "1299",
+        "product_img": "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf",
+        "quantity": "30",
+        "category": "Electronics",
+        "stock": "30"
+      },
+      {
+        "product_name": "Nike Air Jordan 1",
+        "price": "180",
+        "product_img": [
+          "https://images.unsplash.com/photo-1542291026-7eec264c27ff",
+          "https://images.unsplash.com/photo-1549298916-b41d501d3772"
+        ],
+        "quantity": "75",
+        "category": "Footwear",
+        "stock": "75"
+      },
+      {
+        "product_name": "MacBook Pro 16-inch M3",
+        "price": "2499",
+        "product_img": [
+          "https://images.unsplash.com/photo-1517336714731-489689fd1ca8",
+          "https://images.unsplash.com/photo-1541807084-5c52b6b3adef"
+        ],
+        "quantity": "25",
+        "category": "Electronics",
+        "stock": "25"
+      },
+      {
+        "product_name": "Levi's 501 Original Jeans",
+        "price": "89",
+        "product_img": "https://images.unsplash.com/photo-1542272604-787c3835535d",
+        "quantity": "100",
+        "category": "Clothing",
+        "stock": "100"
+      },
+      {
+        "product_name": "Sony WH-1000XM5 Headphones",
+        "price": "399",
+        "product_img": [
+          "https://images.unsplash.com/photo-1505740420928-5e560c06d30e",
+          "https://images.unsplash.com/photo-1583394838336-acd977736f90"
+        ],
+        "quantity": "60",
+        "category": "Electronics",
+        "stock": "60"
+      },
+      {
+        "product_name": "Adidas Ultraboost 22",
+        "price": "190",
+        "product_img": "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa",
+        "quantity": "80",
+        "category": "Footwear",
+        "stock": "80"
+      },
+      {
+        "product_name": "Canon EOS R5 Camera",
+        "price": "3899",
+        "product_img": [
+          "https://images.unsplash.com/photo-1502920917128-1aa500764cbd",
+          "https://images.unsplash.com/photo-1516035069371-29a1b244cc32"
+        ],
+        "quantity": "15",
+        "category": "Electronics",
+        "stock": "15"
+      },
+      {
+        "product_name": "The North Face Jacket",
+        "price": "299",
+        "product_img": "https://images.unsplash.com/photo-1544966503-7cc5ac882d5f",
+        "quantity": "40",
+        "category": "Clothing",
+        "stock": "40"
+      },
+      {
+        "product_name": "Instant Pot Duo 7-in-1",
+        "price": "99",
+        "product_img": "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136",
+        "quantity": "35",
+        "category": "Home & Kitchen",
+        "stock": "35"
+      }
+    ],
+    "low_stock_products": [
+      {
+        "product_name": "Limited Edition Sneakers",
+        "price": "250",
+        "product_img": "https://images.unsplash.com/photo-1560472354-b33ff0c44a43",
+        "quantity": "3",
+        "category": "Footwear",
+        "stock": "3"
+      },
+      {
+        "product_name": "Vintage Watch",
+        "price": "450",
+        "product_img": "https://images.unsplash.com/photo-1524592094714-0f0654e20314",
+        "quantity": "2",
+        "category": "Accessories",
+        "stock": "2"
+      }
+    ],
+    "out_of_stock_products": [
+      {
+        "product_name": "Sold Out Gaming Console",
+        "price": "499",
+        "product_img": "https://images.unsplash.com/photo-1606144042614-b2417e99c4e3",
+        "quantity": "0",
+        "category": "Electronics",
+        "stock": "0"
+      }
+    ]
+  },
+  "api_endpoints_test_data": {
+    "description": "Test data for different product API endpoints",
+    "get_all_products": {
+      "endpoint": "GET /products/",
+      "headers": {
+        "Authorization": "Bearer YOUR_JWT_TOKEN"
+      },
+      "expected_response": "Array of all products"
+    },
+    "add_product": {
+      "endpoint": "POST /products/add",
+      "headers": {
+        "Authorization": "Bearer YOUR_JWT_TOKEN",
+        "Content-Type": "application/json"
+      },
+      "sample_request_body": {
+        "product_name": "Test Product",
+        "price": "99",
+        "product_img": ["https://example.com/image1.jpg", "https://example.com/image2.jpg"],
+        "quantity": "25",
+        "category": "Test Category",
+        "stock": "25"
+      }
+    },
+    "check_quantity_and_stock": {
+      "endpoint": "POST /products/quantity/:name",
+      "headers": {
+        "Authorization": "Bearer YOUR_JWT_TOKEN"
+      },
+      "sample_requests": [
+        {
+          "product_name": "iPhone 15 Pro Max",
+          "expected_response": {
+            "product_name": "iPhone 15 Pro Max",
+            "quantity": 50,
+            "stock": 50
+          }
+        },
+        {
+          "product_name": "Limited Edition Sneakers",
+          "expected_response": "low stock"
+        },
+        {
+          "product_name": "NonExistent Product",
+          "expected_response": {
+            "error": "Product not found"
+          }
+        }
+      ]
+    },
+    "search_product": {
+      "endpoint": "GET /products/search/:name",
+      "sample_searches": [
+        {
+          "search_term": "iphone",
+          "description": "Case-insensitive search for iPhone products"
+        },
+        {
+          "search_term": "nike",
+          "description": "Search for Nike products"
+        },
+        {
+          "search_term": "laptop",
+          "description": "Search for laptop/MacBook products"
+        },
+        {
+          "search_term": "nonexistent",
+          "expected_response": {
+            "error": "Product not found"
+          }
+        }
+      ]
+    },
+    "delete_product": {
+      "endpoint": "DELETE /products/:name",
+      "headers": {
+        "Authorization": "Bearer YOUR_JWT_TOKEN"
+      },
+      "sample_requests": [
+        {
+          "product_name": "Test Product to Delete",
+          "expected_response": {
+            "message": "Product deleted successfully",
+            "name": "Test Product to Delete"
+          }
+        },
+        {
+          "product_name": "NonExistent Product",
+          "expected_response": {
+            "error": "Product not found"
+          }
+        }
+      ]
+    }
+  },
+  "curl_examples": {
+    "description": "cURL commands for testing product endpoints",
+    "get_all_products": "curl -X GET \"http://localhost:3000/products/\" -H \"Authorization: Bearer YOUR_JWT_TOKEN\"",
+    "add_product": "curl -X POST \"http://localhost:3000/products/add\" -H \"Authorization: Bearer YOUR_JWT_TOKEN\" -H \"Content-Type: application/json\" -d '{\"product_name\":\"iPhone 15 Pro Max\",\"price\":\"1199\",\"product_img\":[\"https://images.unsplash.com/photo-1592750475338-74b7b21085ab\"],\"quantity\":\"50\",\"category\":\"Electronics\",\"stock\":\"50\"}'",
+    "check_quantity": "curl -X POST \"http://localhost:3000/products/quantity/iPhone%2015%20Pro%20Max\" -H \"Authorization: Bearer YOUR_JWT_TOKEN\"",
+    "search_product": "curl -X GET \"http://localhost:3000/products/search/iphone\"",
+    "delete_product": "curl -X DELETE \"http://localhost:3000/products/iPhone%2015%20Pro%20Max\" -H \"Authorization: Bearer YOUR_JWT_TOKEN\""
+  },
+  "postman_collection_samples": {
+    "description": "Ready-to-import Postman collection data",
+    "collection_name": "E-Commerce Products API",
+    "requests": [
+      {
+        "name": "Get All Products",
+        "method": "GET",
+        "url": "{{base_url}}/products/",
+        "headers": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jwt_token}}"
+          }
+        ]
+      },
+      {
+        "name": "Add Product",
+        "method": "POST",
+        "url": "{{base_url}}/products/add",
+        "headers": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jwt_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"product_name\": \"iPhone 15 Pro Max\",\n  \"price\": \"1199\",\n  \"product_img\": [\"https://images.unsplash.com/photo-1592750475338-74b7b21085ab\"],\n  \"quantity\": \"50\",\n  \"category\": \"Electronics\",\n  \"stock\": \"50\"\n}"
+        }
+      },
+      {
+        "name": "Check Product Quantity",
+        "method": "POST",
+        "url": "{{base_url}}/products/quantity/iPhone 15 Pro Max",
+        "headers": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jwt_token}}"
+          }
+        ]
+      },
+      {
+        "name": "Search Product",
+        "method": "GET",
+        "url": "{{base_url}}/products/search/iphone"
+      },
+      {
+        "name": "Delete Product",
+        "method": "DELETE",
+        "url": "{{base_url}}/products/iPhone 15 Pro Max",
+        "headers": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jwt_token}}"
+          }
+        ]
+      }
+    ],
+    "variables": [
+      {
+        "key": "base_url",
+        "value": "http://localhost:3000"
+      },
+      {
+        "key": "jwt_token",
+        "value": "YOUR_JWT_TOKEN_HERE"
+      }
+    ]
+  },
+  "edge_cases_and_error_scenarios": {
+    "description": "Test cases for error handling and edge cases",
+    "invalid_data_scenarios": [
+      {
+        "scenario": "Missing required fields",
+        "request_body": {
+          "product_name": "Test Product"
+        },
+        "expected_error": "Database validation error or missing fields"
+      },
+      {
+        "scenario": "Invalid price format",
+        "request_body": {
+          "product_name": "Test Product",
+          "price": "invalid_price",
+          "quantity": "10",
+          "category": "Test",
+          "stock": "10"
+        },
+        "expected_error": "parseInt will return NaN"
+      },
+      {
+        "scenario": "Negative stock",
+        "request_body": {
+          "product_name": "Test Product",
+          "price": "99",
+          "quantity": "-5",
+          "category": "Test",
+          "stock": "-5"
+        },
+        "expected_behavior": "Should be handled by business logic"
+      },
+      {
+        "scenario": "Empty product name",
+        "request_body": {
+          "product_name": "",
+          "price": "99",
+          "quantity": "10",
+          "category": "Test",
+          "stock": "10"
+        },
+        "expected_error": "Validation error"
+      }
+    ],
+    "authorization_scenarios": [
+      {
+        "scenario": "No JWT token",
+        "headers": {},
+        "expected_error": "401 Unauthorized"
+      },
+      {
+        "scenario": "Invalid JWT token",
+        "headers": {
+          "Authorization": "Bearer invalid_token"
+        },
+        "expected_error": "401 Unauthorized"
+      },
+      {
+        "scenario": "User without store",
+        "description": "User tries to add product but doesn't have a store",
+        "expected_error": "Store not found for this user"
+      }
+    ]
+  },
+  "performance_test_data": {
+    "description": "Data for performance and load testing",
+    "bulk_products": {
+      "note": "Use this structure to create multiple products for load testing",
+      "template": {
+        "product_name": "Bulk Product {{index}}",
+        "price": "{{random_price_50_500}}",
+        "product_img": ["https://picsum.photos/400/400?random={{index}}"],
+        "quantity": "{{random_quantity_10_100}}",
+        "category": "{{random_category}}",
+        "stock": "{{random_stock_10_100}}"
+      },
+      "categories": ["Electronics", "Clothing", "Footwear", "Home & Kitchen", "Books", "Sports", "Beauty", "Automotive"],
+      "sample_count": 1000
+    }
+  }
+}

@@ -28,6 +28,8 @@ model user {
   latitude   Float?
   longitude  Float?
   order orders[]
+  seller seller?
+  store_reviews store_review[]
 }
 
 enum Role {
@@ -58,6 +60,14 @@ model store {
   longitude    Float
   latitude     Float
   order orders[]
+  seller seller[]
+  seller_analytics seller_analytics[]
+  sales_reports sales_report[]
+  earnings_reports earnings_report[]
+  // store_performance store_performance? // Removed due to missing model definition
+  store_hours store_hours[]
+  inventory_alerts inventory_alert[]
+  store_reviews store_review[]
 }
 
 enum StoreStatus {
@@ -112,6 +122,9 @@ model product {
   cart_items   cart_item[]
   latitude     Float
   order order_item[]
+  best_selling_reports sales_report[]
+  worst_selling_reports sales_report[] @relation("WorstSellingProduct")
+  inventory_alerts inventory_alert[]
 }
 
 enum CartStatus {
@@ -133,6 +146,7 @@ model orders {
   placed_at     DateTime    @default(now())
   updated_at    DateTime    @updatedAt
   order_items   order_item[]
+  store_reviews store_review[] @relation("OrderStoreReviews")
 }
 
 model order_item {
@@ -154,3 +168,227 @@ enum OrderStatus {
   DELIVERED        // Delivered to customer
   CANCELLED
 }
+
+// ========== SELLER DASHBOARD SCHEMA ==========
+
+model seller {
+  id Int @id @default(autoincrement())
+  user_id Int @unique
+  user user @relation(fields: [user_id], references: [id])
+  store store[]
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  phone String
+  business_license String?
+  tax_id String?
+  is_verified Boolean @default(false)
+  verification_date DateTime?
+  dashboard_analytics seller_analytics[]
+  sales_reports sales_report[]
+  earnings_reports earnings_report[]
+}
+
+// Seller Dashboard Analytics - Tracks daily performance metrics
+model seller_analytics {
+  id Int @id @default(autoincrement())
+  seller_id Int
+  seller seller @relation(fields: [seller_id], references: [id], onDelete: Cascade)
+  store_id Int
+  store store @relation(fields: [store_id], references: [id], onDelete: Cascade)
+  date DateTime @default(now())
+  daily_sales_amount Int @default(0)          // Today's total sales
+  daily_orders_count Int @default(0)          // Number of orders today
+  daily_revenue Int @default(0)               // Revenue after costs
+  total_products_sold Int @default(0)         // Products sold today
+  total_customers_served Int @default(0)      // Unique customers today
+  average_order_value Float @default(0.0)     // AOV for today
+  inventory_count Int @default(0)             // Live inventory count
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@unique([seller_id, store_id, date])
+}
+
+// Sales Reports for detailed analytics and reporting
+model sales_report {
+  id Int @id @default(autoincrement())
+  seller_id Int
+  seller seller @relation(fields: [seller_id], references: [id], onDelete: Cascade)
+  store_id Int
+  store store @relation(fields: [store_id], references: [id], onDelete: Cascade)
+  report_type ReportType @default(DAILY)
+  start_date DateTime
+  end_date DateTime
+  total_sales_amount Int
+  total_orders Int
+  total_products_sold Int
+  total_customers Int
+  best_selling_product_id Int?
+  best_selling_product product? @relation(fields: [best_selling_product_id], references: [id])
+  worst_selling_product_id Int?
+  worst_selling_product product? @relation("WorstSellingProduct", fields: [worst_selling_product_id], references: [id])
+  profit_margin Float @default(0.0)
+  return_rate Float @default(0.0)
+  customer_satisfaction_score Float?
+  peak_sales_hour String?                     // Hour with most sales (e.g., "14:00")
+  slowest_sales_hour String?                  // Hour with least sales
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  report_data Json?                           // Additional analytics data as JSON
+}
+
+// Comprehensive Earnings Report for advanced seller reporting
+model earnings_report {
+  id Int @id @default(autoincrement())
+  seller_id Int
+  seller seller @relation(fields: [seller_id], references: [id], onDelete: Cascade)
+  store_id Int?
+  store store? @relation(fields: [store_id], references: [id], onDelete: Cascade)
+  report_period ReportPeriod @default(DAILY)
+  start_date DateTime
+  end_date DateTime
+  
+  // Financial metrics
+  total_earnings Int @default(0)              // Total earnings for the period
+  gross_sales Int @default(0)                 // Total sales before deductions
+  total_deductions Int @default(0)            // Platform fees, taxes, etc.
+  net_earnings Int @default(0)                // Earnings after deductions
+  average_order_value Float @default(0.0)     // AOV for the period
+  
+  // Order metrics
+  total_orders Int @default(0)
+  completed_orders Int @default(0)
+  cancelled_orders Int @default(0)
+  returned_orders Int @default(0)
+  refunded_orders Int @default(0)
+  pending_orders Int @default(0)
+  
+  // Performance metrics
+  conversion_rate Float @default(0.0)         // Orders/views ratio
+  cancellation_rate Float @default(0.0)       // Cancelled/total orders
+  return_rate Float @default(0.0)             // Returns/completed orders
+  customer_acquisition_cost Float @default(0.0)
+  customer_lifetime_value Float @default(0.0)
+  
+  // Product metrics
+  total_products_sold Int @default(0)
+  unique_products_sold Int @default(0)
+  best_performing_category String?
+  worst_performing_category String?
+  
+  // Additional data
+  report_data Json?                           // Detailed breakdown data
+  export_urls Json?                           // URLs for PDF/CSV exports
+  
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  
+  @@index([seller_id, start_date])
+  @@index([store_id, start_date])
+}
+
+enum ReportType {
+  DAILY
+  WEEKLY
+  MONTHLY
+  QUARTERLY
+  YEARLY
+  CUSTOM
+}
+
+enum ReportPeriod {
+  DAILY
+  WEEKLY
+  MONTHLY
+  QUARTERLY
+  YEARLY
+  CUSTOM
+}
+
+enum ActionType {
+  PRODUCT_ADDED
+  PRODUCT_UPDATED
+  PRODUCT_DELETED
+  STORE_OPENED
+  STORE_CLOSED
+  STORE_SETTINGS_UPDATED
+  SALES_REPORT_GENERATED
+  INVENTORY_UPDATED
+  ORDER_STATUS_CHANGED
+  DISCOUNT_CREATED
+  PROMOTION_LAUNCHED
+  DASHBOARD_VIEWED
+  NOTIFICATION_READ
+}
+
+enum AlertType {
+  LOW_STOCK
+  OUT_OF_STOCK
+  HIGH_DEMAND
+  PRICE_CHANGE
+  EXPIRY_WARNING
+  QUALITY_ISSUE
+  REORDER_POINT
+}
+
+enum AlertPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum NotificationType {
+  INFO
+  SUCCESS
+  WARNING
+  ERROR
+  PROMOTION
+  ORDER_UPDATE
+  INVENTORY_ALERT
+  SYSTEM_UPDATE
+}
+
+// Inventory Alert Model
+model inventory_alert {
+  id           Int      @id @default(autoincrement())
+  product_id   Int
+  store_id     Int
+  alert_type   AlertType
+  priority     AlertPriority @default(MEDIUM)
+  message      String?
+  created_at   DateTime @default(now())
+  resolved     Boolean  @default(false)
+  resolved_at  DateTime?
+
+  product      product  @relation(fields: [product_id], references: [id])
+  store        store    @relation(fields: [store_id], references: [id])
+}
+
+// Store Hours Model
+model store_hours {
+  id        Int      @id @default(autoincrement())
+  store_id  Int
+  day       String   // e.g., "Monday", "Tuesday"
+  open_time String   // e.g., "09:00"
+  close_time String  // e.g., "18:00"
+  store     store    @relation(fields: [store_id], references: [id])
+}
+
+// Store Review Model
+model store_review {
+  id         Int      @id @default(autoincrement())
+  user_id    Int
+  store_id   Int
+  order_id   Int?
+  rating     Int      // e.g., 1-5 stars
+  comment    String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  user  user  @relation(fields: [user_id], references: [id])
+  store store @relation(fields: [store_id], references: [id])
+  order orders? @relation("OrderStoreReviews", fields: [order_id], references: [id])
+}
+
+

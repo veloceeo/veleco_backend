@@ -3,13 +3,15 @@ import cloudinary, { UploadStream } from "cloudinary";
 import { PrismaClient } from "../db/generated/prisma";
 import { authMiddleware } from "../models/auth/middleware";
 import multer from "multer";
-import { ca } from "zod/v4/locales";
 
 const product = express.Router();
 const prisma = new PrismaClient()
 
 product.get("/",authMiddleware, async (req, res) => {
     const product = await prisma.product.findMany();
+    if (!product || product.length === 0) {
+        return res.status(404).json({ error: "No products found" });
+    }
     res.send(product);
 })
 //add product
