@@ -64,10 +64,13 @@ model store {
   seller_analytics seller_analytics[]
   sales_reports sales_report[]
   earnings_reports earnings_report[]
-  // store_performance store_performance? // Removed due to missing model definition
+  store_performance store_performance?
   store_hours store_hours[]
   inventory_alerts inventory_alert[]
   store_reviews store_review[]
+  settlements    seller_settlement[]
+  payments       seller_payment[]
+  balance        seller_balance[]
 }
 
 enum StoreStatus {
@@ -147,6 +150,7 @@ model orders {
   updated_at    DateTime    @updatedAt
   order_items   order_item[]
   store_reviews store_review[] @relation("OrderStoreReviews")
+  settlement_details settlement_detail[] // Added relation field for settlement_detail
 }
 
 model order_item {
@@ -186,6 +190,9 @@ model seller {
   dashboard_analytics seller_analytics[]
   sales_reports sales_report[]
   earnings_reports earnings_report[]
+  settlements    seller_settlement[]
+  payments       seller_payment[]
+  balance        seller_balance[]
 }
 
 // Seller Dashboard Analytics - Tracks daily performance metrics
@@ -366,12 +373,14 @@ model inventory_alert {
 }
 
 // Store Hours Model
+// Store Hours Model
 model store_hours {
   id        Int      @id @default(autoincrement())
   store_id  Int
   day       String   // e.g., "Monday", "Tuesday"
-  open_time String   // e.g., "09:00"
-  close_time String  // e.g., "18:00"
+  open_time String?  // e.g., "09:00" - made optional
+  close_time String? // e.g., "18:00" - made optional
+  is_closed Boolean  @default(false) // Add this field
   store     store    @relation(fields: [store_id], references: [id])
 }
 
@@ -391,4 +400,143 @@ model store_review {
   order orders? @relation("OrderStoreReviews", fields: [order_id], references: [id])
 }
 
+// Add this model after the store model (around line 66)
+model store_performance {
+  id                      Int      @id @default(autoincrement())
+  store_id                Int      @unique
+  store                   store    @relation(fields: [store_id], references: [id], onDelete: Cascade)
+  total_lifetime_sales    Int      @default(0)
+  total_lifetime_orders   Int      @default(0)
+  total_customers         Int      @default(0)
+  average_rating          Float    @default(0.0)
+  total_reviews           Int      @default(0)
+  inventory_turnover_rate Float    @default(0.0)
+  last_sale_date          DateTime?
+  peak_hours              Json?
+  monthly_growth_rate     Float    @default(0.0)
+  customer_retention_rate Float    @default(0.0)
+  created_at              DateTime @default(now())
+  updated_at              DateTime @updatedAt
+}
 
+
+// Add these enums first
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+  REFUNDED
+}
+
+enum SettlementStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  DISPUTED
+}
+
+enum PaymentMethod {
+  BANK_TRANSFER
+  UPI
+  WALLET
+  CARD
+  CHEQUE
+}
+
+// Add these models after your existing models
+model seller_settlement {
+  id                      Int             @id @default(autoincrement())
+  seller_id               Int
+  store_id                Int
+  settlement_period_start DateTime
+  settlement_period_end   DateTime
+  total_sales_amount      Float
+  platform_commission     Float
+  tax_deduction           Float
+  other_deductions        Float           @default(0)
+  net_settlement_amount   Float
+  status                  SettlementStatus @default(PENDING)
+  payment_method          PaymentMethod?
+  transaction_reference   String?
+  settled_at              DateTime?
+  created_at              DateTime        @default(now())
+  updated_at              DateTime        @updatedAt
+
+  seller                  seller          @relation(fields: [seller_id], references: [id])
+  store                   store           @relation(fields: [store_id], references: [id])
+  settlement_details      settlement_detail[]
+  seller_payments         seller_payment[]
+
+  @@index([seller_id])
+  @@index([store_id])
+  @@index([status])
+  @@index([settlement_period_start, settlement_period_end])
+}
+
+model settlement_detail {
+  id                Int      @id @default(autoincrement())
+  settlement_id     Int
+  order_id          Int
+  order_amount      Float
+  commission_rate   Float
+  commission_amount Float
+  tax_amount        Float    @default(0)
+  net_amount        Float
+  created_at        DateTime @default(now())
+
+  settlement        seller_settlement @relation(fields: [settlement_id], references: [id])
+  order             orders            @relation(fields: [order_id], references: [id])
+
+  @@index([settlement_id])
+  @@index([order_id])
+}
+
+model seller_payment {
+  id                  Int           @id @default(autoincrement())
+  seller_id           Int
+  store_id            Int
+  settlement_id       Int?
+  amount              Float
+  payment_method      PaymentMethod
+  status              PaymentStatus @default(PENDING)
+  transaction_reference String?
+  payment_date        DateTime?
+  due_date            DateTime
+  description         String?
+  failure_reason      String?
+  metadata            Json?
+  created_at          DateTime      @default(now())
+  updated_at          DateTime      @updatedAt
+
+  seller              seller        @relation(fields: [seller_id], references: [id])
+  store               store         @relation(fields: [store_id], references: [id])
+  settlement          seller_settlement? @relation(fields: [settlement_id], references: [id])
+
+  @@index([seller_id])
+  @@index([store_id])
+  @@index([status])
+  @@index([due_date])
+  @@index([payment_date])
+}
+
+model seller_balance {
+  id                      Int      @id @default(autoincrement())
+  seller_id               Int      @unique
+  store_id                Int      @unique
+  pending_amount          Float    @default(0)
+  available_amount        Float    @default(0)
+  last_settlement_date    DateTime?
+  next_settlement_date    DateTime?
+  total_lifetime_earnings Float    @default(0)
+  total_withdrawals       Float    @default(0)
+  commission_rate         Float    @default(5.0)
+  updated_at              DateTime @updatedAt
+  seller                  seller   @relation(fields: [seller_id], references: [id])
+  store                   store    @relation(fields: [store_id], references: [id])
+
+  @@index([seller_id])
+  @@index([store_id])
+}
