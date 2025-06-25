@@ -448,15 +448,6 @@ async function seedSellerDashboard() {
           total_reviews: 342,
           inventory_turnover_rate: 12.5,
           last_sale_date: new Date('2024-06-24T18:45:00Z'),
-          peak_hours: {
-            monday: ['10:00-12:00', '14:00-16:00'],
-            tuesday: ['11:00-13:00', '15:00-17:00'],
-            wednesday: ['10:00-12:00', '14:00-16:00'],
-            thursday: ['11:00-13:00', '15:00-17:00'],
-            friday: ['12:00-14:00', '16:00-18:00'],
-            saturday: ['10:00-18:00'],
-            sunday: ['12:00-16:00']
-          },
           monthly_growth_rate: 15.8,
           customer_retention_rate: 68.5
         }
@@ -472,15 +463,7 @@ async function seedSellerDashboard() {
           total_reviews: 278,
           inventory_turnover_rate: 10.2,
           last_sale_date: new Date('2024-06-24T19:20:00Z'),
-          peak_hours: {
-            monday: ['09:00-11:00', '13:00-15:00'],
-            tuesday: ['10:00-12:00', '14:00-16:00'],
-            wednesday: ['09:00-11:00', '13:00-15:00'],
-            thursday: ['10:00-12:00', '14:00-16:00'],
-            friday: ['11:00-13:00', '15:00-17:00'],
-            saturday: ['09:00-17:00'],
-            sunday: ['11:00-15:00']
-          },
+         
           monthly_growth_rate: 12.3,
           customer_retention_rate: 72.1
         }
@@ -490,24 +473,24 @@ async function seedSellerDashboard() {
     console.log(`✅ Created ${storePerformance.length} store performance records`);
 
     // 5. Create store hours
-    console.log('🕐 Creating store hours...');    const storeHoursData = [
+    console.log('🕐 Creating store hours...');
+    const storeHoursData = [
       // Store 1 hours (closed Sunday)
-      { store_id: stores[0].id, day_of_week: 0, is_open: false, opening_time: null, closing_time: null },
-      { store_id: stores[0].id, day_of_week: 1, is_open: true, opening_time: '09:00', closing_time: '18:00', break_start_time: '13:00', break_end_time: '14:00' },
-      { store_id: stores[0].id, day_of_week: 2, is_open: true, opening_time: '09:00', closing_time: '18:00', break_start_time: '13:00', break_end_time: '14:00' },
-      { store_id: stores[0].id, day_of_week: 3, is_open: true, opening_time: '09:00', closing_time: '18:00', break_start_time: '13:00', break_end_time: '14:00' },
-      { store_id: stores[0].id, day_of_week: 4, is_open: true, opening_time: '09:00', closing_time: '18:00', break_start_time: '13:00', break_end_time: '14:00' },
-      { store_id: stores[0].id, day_of_week: 5, is_open: true, opening_time: '09:00', closing_time: '20:00' },
-      { store_id: stores[0].id, day_of_week: 6, is_open: true, opening_time: '10:00', closing_time: '20:00' },
+      { store_id: stores[0].id, day: 'Monday', open_time: '09:00', close_time: '18:00' },
+      { store_id: stores[0].id, day: 'Tuesday', open_time: '09:00', close_time: '18:00' },
+      { store_id: stores[0].id, day: 'Wednesday', open_time: '09:00', close_time: '18:00' },
+      { store_id: stores[0].id, day: 'Thursday', open_time: '09:00', close_time: '18:00' },
+      { store_id: stores[0].id, day: 'Friday', open_time: '09:00', close_time: '20:00' },
+      { store_id: stores[0].id, day: 'Saturday', open_time: '10:00', close_time: '20:00' },
       
       // Store 2 hours (open all days)
-      { store_id: stores[1].id, day_of_week: 0, is_open: true, opening_time: '11:00', closing_time: '17:00' },
-      { store_id: stores[1].id, day_of_week: 1, is_open: true, opening_time: '08:00', closing_time: '19:00', break_start_time: '12:30', break_end_time: '13:30' },
-      { store_id: stores[1].id, day_of_week: 2, is_open: true, opening_time: '08:00', closing_time: '19:00', break_start_time: '12:30', break_end_time: '13:30' },
-      { store_id: stores[1].id, day_of_week: 3, is_open: true, opening_time: '08:00', closing_time: '19:00', break_start_time: '12:30', break_end_time: '13:30' },
-      { store_id: stores[1].id, day_of_week: 4, is_open: true, opening_time: '08:00', closing_time: '19:00', break_start_time: '12:30', break_end_time: '13:30' },
-      { store_id: stores[1].id, day_of_week: 5, is_open: true, opening_time: '08:00', closing_time: '21:00' },
-      { store_id: stores[1].id, day_of_week: 6, is_open: true, opening_time: '09:00', closing_time: '21:00' }
+      { store_id: stores[1].id, day: 'Sunday', open_time: '11:00', close_time: '17:00' },
+      { store_id: stores[1].id, day: 'Monday', open_time: '08:00', close_time: '19:00' },
+      { store_id: stores[1].id, day: 'Tuesday', open_time: '08:00', close_time: '19:00' },
+      { store_id: stores[1].id, day: 'Wednesday', open_time: '08:00', close_time: '19:00' },
+      { store_id: stores[1].id, day: 'Thursday', open_time: '08:00', close_time: '19:00' },
+      { store_id: stores[1].id, day: 'Friday', open_time: '08:00', close_time: '21:00' },
+      { store_id: stores[1].id, day: 'Saturday', open_time: '09:00', close_time: '21:00' }
     ];
 
     await prisma.store_hours.createMany({
@@ -515,7 +498,9 @@ async function seedSellerDashboard() {
       skipDuplicates: true
     });
     
-    console.log(`✅ Created ${storeHoursData.length} store hours records`);    // 6. Create inventory alerts
+    console.log(`✅ Created ${storeHoursData.length} store hours records`);
+
+    // 6. Create inventory alerts
     console.log('🚨 Creating inventory alerts...');
     const inventoryAlerts = await Promise.all([
       prisma.inventory_alert.create({
@@ -523,11 +508,8 @@ async function seedSellerDashboard() {
           store_id: stores[0].id,
           product_id: 1,
           alert_type: 'LOW_STOCK',
-          threshold_value: 10,
-          current_value: 3,
-          is_resolved: false,
-          message: 'Premium Headphones running low on stock',
-          priority: 'HIGH'
+          priority: 'HIGH',
+          message: 'Premium Headphones running low on stock'
         }
       }),
       prisma.inventory_alert.create({
@@ -535,11 +517,8 @@ async function seedSellerDashboard() {
           store_id: stores[0].id,
           product_id: 2,
           alert_type: 'OUT_OF_STOCK',
-          threshold_value: 0,
-          current_value: 0,
-          is_resolved: false,
-          message: 'Bluetooth Speaker is out of stock',
-          priority: 'CRITICAL'
+          priority: 'CRITICAL',
+          message: 'Bluetooth Speaker is out of stock'
         }
       }),
       prisma.inventory_alert.create({
@@ -547,16 +526,15 @@ async function seedSellerDashboard() {
           store_id: stores[1].id,
           product_id: 4,
           alert_type: 'LOW_STOCK',
-          threshold_value: 15,
-          current_value: 8,
-          is_resolved: false,
-          message: 'Gaming Mouse running low',
-          priority: 'HIGH'
+          priority: 'HIGH',
+          message: 'Gaming Mouse running low'
         }
       })
     ]);
     
-    console.log(`✅ Created ${inventoryAlerts.length} inventory alerts`);    // 7. Create store reviews
+    console.log(`✅ Created ${inventoryAlerts.length} inventory alerts`);
+
+    // 7. Create store reviews
     console.log('⭐ Creating store reviews...');
     const storeReviews = await Promise.all([
       prisma.store_review.create({
@@ -565,10 +543,7 @@ async function seedSellerDashboard() {
           user_id: customerUsers[0].id,
           order_id: orders[0].id,
           rating: 5,
-          review_text: 'Excellent service and fast delivery! The headphones work perfectly.',
-          is_verified: true,
-          is_featured: true,
-          helpful_count: 12
+          comment: 'Excellent service and fast delivery! The headphones work perfectly.'
         }
       }),
       prisma.store_review.create({
@@ -577,10 +552,7 @@ async function seedSellerDashboard() {
           user_id: customerUsers[1].id,
           order_id: orders[1].id,
           rating: 4,
-          review_text: 'Good quality products, but could improve packaging.',
-          is_verified: true,
-          is_featured: false,
-          helpful_count: 8
+          comment: 'Good quality products, but could improve packaging.'
         }
       }),
       prisma.store_review.create({
@@ -589,111 +561,207 @@ async function seedSellerDashboard() {
           user_id: customerUsers[2].id,
           order_id: orders[2].id,
           rating: 4,
-          review_text: 'Fast shipping and good prices. Will order again.',
-          is_verified: true,
-          is_featured: false,
-          helpful_count: 6
+          comment: 'Fast shipping and good prices. Will order again.'
         }
       })
     ]);
     
-    console.log(`✅ Created ${storeReviews.length} store reviews`);    // 8. Create dashboard notifications
-    console.log('🔔 Creating dashboard notifications...');
-    const notifications = await Promise.all([
-      prisma.dashboard_notification.create({
+    console.log(`✅ Created ${storeReviews.length} store reviews`);
+
+    // 8. Create seller settlements
+    console.log('💰 Creating seller settlements...');
+    const settlements = await Promise.all([
+      prisma.seller_settlement.create({
         data: {
           seller_id: sellers[0].id,
           store_id: stores[0].id,
-          title: 'Low Stock Alert',
-          message: 'Premium Headphones stock is running low (3 units remaining)',
-          notification_type: 'INVENTORY_ALERT',
-          is_read: false,
-          is_urgent: true,
-          action_url: '/inventory/product/1',
-          action_text: 'Restock Now'
+          settlement_period_start: new Date('2024-06-01T00:00:00Z'),
+          settlement_period_end: new Date('2024-06-07T23:59:59Z'),
+          total_sales_amount: 12500.00,
+          platform_commission: 625.00, // 5% commission
+          tax_deduction: 375.00, // 3% tax
+          other_deductions: 50.00,
+          net_settlement_amount: 11450.00,
+          status: 'COMPLETED',
+          payment_method: 'BANK_TRANSFER',
+          transaction_reference: 'TXN-2024-001',
+          settled_at: new Date('2024-06-08T10:30:00Z')
         }
       }),
-      prisma.dashboard_notification.create({
+      prisma.seller_settlement.create({
         data: {
           seller_id: sellers[0].id,
           store_id: stores[0].id,
-          title: 'New Order Received',
-          message: 'You have received a new order #ORD-2024-156 worth $299',
-          notification_type: 'ORDER_UPDATE',
-          is_read: false,
-          is_urgent: false,
-          action_url: '/orders/ORD-2024-156',
-          action_text: 'View Order'
+          settlement_period_start: new Date('2024-06-08T00:00:00Z'),
+          settlement_period_end: new Date('2024-06-14T23:59:59Z'),
+          total_sales_amount: 8750.00,
+          platform_commission: 437.50,
+          tax_deduction: 262.50,
+          other_deductions: 25.00,
+          net_settlement_amount: 8025.00,
+          status: 'PENDING',
+          payment_method: 'UPI'
         }
       }),
-      prisma.dashboard_notification.create({
+      prisma.seller_settlement.create({
         data: {
           seller_id: sellers[1].id,
           store_id: stores[1].id,
-          title: 'Critical Stock Alert',
-          message: 'Gaming Mouse is completely out of stock',
-          notification_type: 'INVENTORY_ALERT',
-          is_read: false,
-          is_urgent: true,
-          action_url: '/inventory/product/4',
-          action_text: 'Restock Immediately'
+          settlement_period_start: new Date('2024-06-01T00:00:00Z'),
+          settlement_period_end: new Date('2024-06-07T23:59:59Z'),
+          total_sales_amount: 15600.00,
+          platform_commission: 780.00,
+          tax_deduction: 468.00,
+          other_deductions: 75.00,
+          net_settlement_amount: 14277.00,
+          status: 'COMPLETED',
+          payment_method: 'BANK_TRANSFER',
+          transaction_reference: 'TXN-2024-002',
+          settled_at: new Date('2024-06-08T14:15:00Z')
         }
       })
     ]);
     
-    console.log(`✅ Created ${notifications.length} notifications`);    // 9. Create dashboard action logs
-    console.log('📋 Creating action logs...');
-    const actionLogs = await Promise.all([
-      prisma.dashboard_action_log.create({
+    console.log(`✅ Created ${settlements.length} settlements`);
+
+    // 9. Create settlement details
+    console.log('📋 Creating settlement details...');
+    const settlementDetails = await Promise.all([
+      prisma.settlement_detail.create({
+        data: {
+          settlement_id: settlements[0].id,
+          order_id: orders[0].id,
+          order_amount: 299.00,
+          commission_rate: 5.0,
+          commission_amount: 14.95,
+          tax_amount: 8.97,
+          net_amount: 275.08
+        }
+      }),
+      prisma.settlement_detail.create({
+        data: {
+          settlement_id: settlements[0].id,
+          order_id: orders[1].id,
+          order_amount: 149.00,
+          commission_rate: 5.0,
+          commission_amount: 7.45,
+          tax_amount: 4.47,
+          net_amount: 137.08
+        }
+      }),
+      prisma.settlement_detail.create({
+        data: {
+          settlement_id: settlements[2].id,
+          order_id: orders[2].id,
+          order_amount: 79.00,
+          commission_rate: 5.0,
+          commission_amount: 3.95,
+          tax_amount: 2.37,
+          net_amount: 72.68
+        }
+      })
+    ]);
+    
+    console.log(`✅ Created ${settlementDetails.length} settlement details`);
+
+    // 10. Create seller payments
+    console.log('💳 Creating seller payments...');
+    const payments = await Promise.all([
+      prisma.seller_payment.create({
         data: {
           seller_id: sellers[0].id,
           store_id: stores[0].id,
-          action_type: 'DASHBOARD_VIEWED',
-          action_description: 'Seller viewed dashboard analytics',
-          metadata: {
-            page: 'analytics',
-            duration_seconds: 45,
-            filters_applied: ['date_range', 'store_1']
-          },
-          ip_address: '192.168.1.100',
-          user_agent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+          settlement_id: settlements[0].id,
+          amount: 11450.00,
+          payment_method: 'BANK_TRANSFER',
+          status: 'COMPLETED',
+          transaction_reference: 'PAY-TXN-2024-001',
+          payment_date: new Date('2024-06-08T10:30:00Z'),
+          due_date: new Date('2024-06-08T00:00:00Z'),
+          description: 'Weekly settlement payment for Tech Electronics Store'
         }
       }),
-      prisma.dashboard_action_log.create({
+      prisma.seller_payment.create({
         data: {
           seller_id: sellers[0].id,
           store_id: stores[0].id,
-          action_type: 'PRODUCT_UPDATED',
-          action_description: 'Updated Premium Headphones price from $299 to $279',
-          metadata: {
-            product_id: 1,
-            old_price: 299,
-            new_price: 279,
-            reason: 'competitive_pricing'
-          },
-          ip_address: '192.168.1.100',
-          user_agent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+          settlement_id: settlements[1].id,
+          amount: 8025.00,
+          payment_method: 'UPI',
+          status: 'PENDING',
+          due_date: new Date('2024-06-15T00:00:00Z'),
+          description: 'Weekly settlement payment for Tech Electronics Store'
         }
       }),
-      prisma.dashboard_action_log.create({
+      prisma.seller_payment.create({
         data: {
           seller_id: sellers[1].id,
           store_id: stores[1].id,
-          action_type: 'ORDER_STATUS_CHANGED',
-          action_description: 'Changed order #ORD-2024-145 status from PENDING to ACCEPTED',
+          settlement_id: settlements[2].id,
+          amount: 14277.00,
+          payment_method: 'BANK_TRANSFER',
+          status: 'COMPLETED',
+          transaction_reference: 'PAY-TXN-2024-002',
+          payment_date: new Date('2024-06-08T14:15:00Z'),
+          due_date: new Date('2024-06-08T00:00:00Z'),
+          description: 'Weekly settlement payment for Gaming Gear Hub'
+        }
+      }),
+      // Add a failed payment example
+      prisma.seller_payment.create({
+        data: {
+          seller_id: sellers[1].id,
+          store_id: stores[1].id,
+          amount: 5200.00,
+          payment_method: 'BANK_TRANSFER',
+          status: 'FAILED',
+          due_date: new Date('2024-06-10T00:00:00Z'),
+          description: 'Manual settlement payment',
+          failure_reason: 'Bank account details incorrect',
           metadata: {
-            order_id: 'ORD-2024-145',
-            old_status: 'PENDING',
-            new_status: 'ACCEPTED',
-            processing_time_minutes: 12
-          },
-          ip_address: '192.168.1.101',
-          user_agent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'
+            attempt_count: 3,
+            last_attempt: '2024-06-10T15:30:00Z',
+            error_code: 'INVALID_ACCOUNT'
+          }
         }
       })
     ]);
     
-    console.log(`✅ Created ${actionLogs.length} action logs`);
+    console.log(`✅ Created ${payments.length} payments`);    // 11. Create seller balance records
+    console.log('💰 Creating seller balance records...');
+    const balances = await Promise.all([
+      prisma.seller_balance.upsert({
+        where: {
+          store_id: stores[0].id
+        },
+        update: {},
+        create: {
+          seller_id: sellers[0].id,
+          store_id: stores[0].id,
+          available_amount: 0.00,
+          pending_amount: 8025.00,
+          total_withdrawals: 114524.25,
+          last_settlement_date: new Date('2024-06-08T10:30:00Z'),
+          next_settlement_date: new Date('2024-06-15T00:00:00Z')
+        }
+      }),
+      prisma.seller_balance.upsert({
+        where: {
+          store_id: stores[1].id
+        },
+        update: {},
+        create: {
+          seller_id: sellers[1].id,
+          store_id: stores[1].id,
+          available_amount: 0.00,
+          pending_amount: 0.00,
+          total_withdrawals: 88249.50,
+          last_settlement_date: new Date('2024-06-08T14:15:00Z'),
+          next_settlement_date: new Date('2024-06-15T00:00:00Z')
+        }
+      })
+    ]);    
+    console.log(`✅ Created ${balances.length} balance records`);
 
     console.log('🎉 Seller Dashboard seeding completed successfully!');
     console.log('\n📊 Summary:');
@@ -704,8 +772,10 @@ async function seedSellerDashboard() {
     console.log(`- Store Hours: ${storeHoursData.length}`);
     console.log(`- Inventory Alerts: ${inventoryAlerts.length}`);
     console.log(`- Store Reviews: ${storeReviews.length}`);
-    console.log(`- Notifications: ${notifications.length}`);
-    console.log(`- Action Logs: ${actionLogs.length}`);
+    console.log(`- Settlements: ${settlements.length}`);
+    console.log(`- Settlement Details: ${settlementDetails.length}`);
+    console.log(`- Payments: ${payments.length}`);
+    console.log(`- Balances: ${balances.length}`);
 
   } catch (error) {
     console.error('❌ Error seeding seller dashboard data:', error);

@@ -7,6 +7,7 @@ import router from "./models/cart";
 import cartItemsRouter from './models/cart_items';
 import sellerDashboard from "./models/seller_dashboard";
 import sellerDashboardExtended from "./models/seller_dashboard_extended";
+import paymentRoutes from './payment_routes.js';
 
 const app = express();
 
@@ -19,6 +20,7 @@ app.use("/order", order);
 app.use('/cart-items', cartItemsRouter);
 app.use("/dashboard", sellerDashboard);
 app.use("/data",sellerDashboardExtended);
+app.use('/api/payments', paymentRoutes); // Use the payment routes
 
 app.listen(3000, () => {
     console.log("server run at 3000");

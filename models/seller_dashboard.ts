@@ -340,7 +340,7 @@ sellerDashboard.post("/reports/generate", authMiddleware, async (req, res): Prom
         }
 
         const ownsStore = seller.store.some(s => s.id === storeId);
-        if (ownsStore) {
+        if (!ownsStore) {
             res.status(403).json({ error: 'Access denied: You do not own this store' });
             return;
         }
@@ -691,7 +691,7 @@ sellerDashboard.get("/reports/earnings", authMiddleware, async (req, res): Promi
         }
 
         const ownsStore = seller.store.some(s => s.id === storeId);
-        if (!ownsStore) {
+        if (ownsStore) {
             res.status(403).json({ error: 'Access denied: You do not own this store' });
             return;
         }
