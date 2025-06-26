@@ -1,7 +1,7 @@
 import express from "express";
 import jwt from "jsonwebtoken";
 
-export const authMiddleware = (req: express.Request, res: express.Response, next: express.NextFunction): void => {
+export const authSellerMiddleware = (req: express.Request, res: express.Response, next: express.NextFunction): void => {
     const header = req.headers['auth'] as string;
 
     if (!header) {
@@ -11,6 +11,10 @@ export const authMiddleware = (req: express.Request, res: express.Response, next
 
     try {
         const decode = jwt.verify(header, process.env.JWT_SECRET || "hello") as any;
+        if(decode.role!=="seller") {
+            res.status(403).json({ error: 'Access denied' });
+            return;
+        }
         req.userId = decode.id;
         next();
     } catch (error) {

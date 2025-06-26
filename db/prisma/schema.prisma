@@ -30,6 +30,7 @@ model user {
   order orders[]
   seller seller?
   store_reviews store_review[]
+  seller_sessions       seller_session[]
 }
 
 enum Role {
@@ -71,11 +72,21 @@ model store {
   settlements    seller_settlement[]
   payments       seller_payment[]
   balance        seller_balance[]
+  notifications  seller_notification[]
+  notification_preferences seller_notification_preferences[]
+  open  StoreOpenStatus @default(OPEN)
+  store_staff  store_staff[] // Added relation field for store staff
+  bank seller_bank_account[]
+}
+
+enum StoreOpenStatus {
+  OPEN
+  CLOSED
 }
 
 enum StoreStatus {
-  open
-  close
+ open
+  closed
 }
 
 enum StoreType {
@@ -128,6 +139,7 @@ model product {
   best_selling_reports sales_report[]
   worst_selling_reports sales_report[] @relation("WorstSellingProduct")
   inventory_alerts inventory_alert[]
+  notifications seller_notification[] // Added relation field for notifications
 }
 
 enum CartStatus {
@@ -151,6 +163,7 @@ model orders {
   order_items   order_item[]
   store_reviews store_review[] @relation("OrderStoreReviews")
   settlement_details settlement_detail[] // Added relation field for settlement_detail
+  notifications seller_notification[] // Added relation field for notifications
 }
 
 model order_item {
@@ -193,6 +206,13 @@ model seller {
   settlements    seller_settlement[]
   payments       seller_payment[]
   balance        seller_balance[]
+  notifications  seller_notification[]
+  notification_preferences seller_notification_preferences[]
+  staff_members         store_staff[]
+  staff_created         store_staff[] @relation("StaffCreatedBy")
+  bank_accounts         seller_bank_account[]
+  profile_updates       seller_profile_update[]
+  sessions              seller_session[]
 }
 
 // Seller Dashboard Analytics - Tracks daily performance metrics
@@ -469,6 +489,7 @@ model seller_settlement {
   store                   store           @relation(fields: [store_id], references: [id])
   settlement_details      settlement_detail[]
   seller_payments         seller_payment[]
+  notifications           seller_notification[] // Added relation field for notifications
 
   @@index([seller_id])
   @@index([store_id])
@@ -514,6 +535,7 @@ model seller_payment {
   seller              seller        @relation(fields: [seller_id], references: [id])
   store               store         @relation(fields: [store_id], references: [id])
   settlement          seller_settlement? @relation(fields: [settlement_id], references: [id])
+  notifications       seller_notification[] // Added relation field for notifications
 
   @@index([seller_id])
   @@index([store_id])
@@ -539,4 +561,282 @@ model seller_balance {
 
   @@index([seller_id])
   @@index([store_id])
+}
+
+// ============ NOTIFICATION SYSTEM SCHEMA ============
+
+// Notification types for seller alerts
+enum NotificationCategory {
+  ORDER
+  INVENTORY
+  PAYMENT
+  PROMOTION
+  SYSTEM
+  REVIEW
+  SETTLEMENT
+}
+
+enum NotificationPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum NotificationStatus {
+  UNREAD
+  READ
+  ARCHIVED
+  DISMISSED
+}
+
+// Main notification model for sellers
+model seller_notification {
+  id                Int                    @id @default(autoincrement())
+  seller_id         Int
+  store_id          Int?                   // Optional - can be system-wide notifications
+  category          NotificationCategory
+  type              String                 // Specific type like "NEW_ORDER", "LOW_STOCK", etc.
+  title             String
+  message           String
+  priority          NotificationPriority   @default(MEDIUM)
+  status            NotificationStatus     @default(UNREAD)
+  
+  // Related entity references (optional)
+  related_order_id     Int?
+  related_product_id   Int?
+  related_payment_id   Int?
+  related_settlement_id Int?
+  
+  // Action data
+  action_url        String?               // URL for "View Details" action
+  action_data       Json?                 // Additional action data
+  
+  // Metadata
+  metadata          Json?                 // Additional notification data
+  expires_at        DateTime?             // For temporary notifications
+  read_at           DateTime?
+  dismissed_at      DateTime?
+  created_at        DateTime              @default(now())
+  updated_at        DateTime              @updatedAt
+
+  // Relations
+  seller            seller                @relation(fields: [seller_id], references: [id], onDelete: Cascade)
+  store             store?                @relation(fields: [store_id], references: [id], onDelete: Cascade)
+  related_order     orders?               @relation(fields: [related_order_id], references: [id])
+  related_product   product?              @relation(fields: [related_product_id], references: [id])
+  related_payment   seller_payment?       @relation(fields: [related_payment_id], references: [id])
+  related_settlement seller_settlement?   @relation(fields: [related_settlement_id], references: [id])
+  deliveries        notification_delivery[] // Added relation field for deliveries
+
+  @@index([seller_id])
+  @@index([store_id])
+  @@index([category])
+  @@index([status])
+  @@index([priority])
+  @@index([created_at])
+  @@index([expires_at])
+}
+
+// Notification preferences for sellers
+model seller_notification_preferences {
+  id                    Int      @id @default(autoincrement())
+  seller_id             Int      @unique
+  store_id              Int?     // Can be store-specific or global
+  
+  // Order notifications
+  notify_new_orders         Boolean @default(true)
+  notify_order_updates      Boolean @default(true)
+  notify_order_cancellations Boolean @default(true)
+  
+  // Inventory notifications
+  notify_low_stock          Boolean @default(true)
+  notify_out_of_stock       Boolean @default(true)
+  notify_stock_alerts       Boolean @default(true)
+  low_stock_threshold       Int     @default(10)
+  
+  // Payment notifications
+  notify_payment_updates    Boolean @default(true)
+  notify_payment_failures   Boolean @default(true)
+  notify_settlements        Boolean @default(true)
+  notify_withdrawals        Boolean @default(true)
+  
+  // Promotion notifications
+  notify_offer_requests     Boolean @default(true)
+  notify_promotion_updates  Boolean @default(true)
+  
+  // System notifications
+  notify_system_updates     Boolean @default(true)
+  notify_policy_changes     Boolean @default(false)
+  
+  // Review notifications
+  notify_new_reviews        Boolean @default(true)
+  notify_review_responses   Boolean @default(true)
+  
+  // Delivery preferences
+  email_notifications       Boolean @default(true)
+  sms_notifications         Boolean @default(false)
+  push_notifications        Boolean @default(true)
+  in_app_notifications      Boolean @default(true)
+  
+  // Quiet hours
+  quiet_hours_enabled       Boolean @default(false)
+  quiet_hours_start         String? // e.g., "22:00"
+  quiet_hours_end           String? // e.g., "08:00"
+  
+  created_at               DateTime @default(now())
+  updated_at               DateTime @updatedAt
+
+  seller                   seller   @relation(fields: [seller_id], references: [id], onDelete: Cascade)
+  store                    store?   @relation(fields: [store_id], references: [id], onDelete: Cascade)
+
+  @@index([seller_id])
+  @@index([store_id])
+}
+
+// Notification templates for consistent messaging
+model notification_template {
+  id              Int                    @id @default(autoincrement())
+  category        NotificationCategory
+  type            String                 // e.g., "NEW_ORDER", "LOW_STOCK"
+  title_template  String                 // e.g., "New Order #{{order_id}}"
+  message_template String                // e.g., "You have received a new order worth ₹{{amount}}"
+  priority        NotificationPriority   @default(MEDIUM)
+  is_active       Boolean                @default(true)
+  created_at      DateTime               @default(now())
+  updated_at      DateTime               @updatedAt
+
+  @@unique([category, type])
+  @@index([category])
+  @@index([is_active])
+}
+
+// Notification delivery tracking
+model notification_delivery {
+  id                    Int      @id @default(autoincrement())
+  notification_id       Int
+  delivery_method       String   // email, sms, push, in_app
+  delivery_status       String   // pending, sent, delivered, failed
+  delivery_provider     String?  // e.g., firebase, twilio, sendgrid
+  provider_message_id   String?
+  error_message         String?
+  delivered_at          DateTime?
+  created_at            DateTime @default(now())
+
+  notification          seller_notification @relation(fields: [notification_id], references: [id], onDelete: Cascade)
+
+  @@index([notification_id])
+  @@index([delivery_status])
+}
+
+// Add these models after the existing notification models
+
+// Staff management for stores
+model store_staff {
+  id              Int      @id @default(autoincrement())
+  store_id        Int
+  seller_id       Int      // Owner of the store
+  staff_name      String
+  staff_email     String   @unique
+  staff_phone     String?
+  role            StaffRole @default(STAFF)
+  permissions     Json?    // Specific permissions as JSON
+  is_active       Boolean  @default(true)
+  hired_date      DateTime @default(now())
+  last_login      DateTime?
+  created_by      Int      // Seller ID who created this staff
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  store           store    @relation(fields: [store_id], references: [id], onDelete: Cascade)
+  seller          seller   @relation(fields: [seller_id], references: [id], onDelete: Cascade)
+  created_by_seller seller @relation("StaffCreatedBy", fields: [created_by], references: [id])
+
+  @@index([store_id])
+  @@index([seller_id])
+  @@index([staff_email])
+}
+
+enum StaffRole {
+  MANAGER
+  STAFF
+  CASHIER
+  INVENTORY_MANAGER
+}
+
+// Bank account management for sellers
+model seller_bank_account {
+  id                Int      @id @default(autoincrement())
+  seller_id         Int
+  store_id          Int?     // Optional - can be seller-wide
+  account_holder_name String
+  bank_name         String
+  account_number    String
+  ifsc_code         String
+  branch_name       String?
+  account_type      BankAccountType @default(SAVINGS)
+  is_primary        Boolean  @default(false)
+  is_verified       Boolean  @default(false)
+  verification_date DateTime?
+  is_active         Boolean  @default(true)
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  seller            seller   @relation(fields: [seller_id], references: [id], onDelete: Cascade)
+  store             store?   @relation(fields: [store_id], references: [id], onDelete: Cascade)
+
+  @@unique([seller_id, account_number]) // Prevent duplicate accounts
+  @@index([seller_id])
+  @@index([store_id])
+  @@index([is_primary])
+}
+
+enum BankAccountType {
+  SAVINGS
+  CURRENT
+  BUSINESS
+}
+
+// Seller profile updates tracking
+model seller_profile_update {
+  id              Int      @id @default(autoincrement())
+  seller_id       Int
+  field_name      String   // e.g., "phone", "business_license", etc.
+  old_value       String?
+  new_value       String?
+  update_reason   String?
+  requires_verification Boolean @default(false)
+  is_verified     Boolean  @default(false)
+  verified_at     DateTime?
+  verified_by     String?  // Admin ID or system
+  created_at      DateTime @default(now())
+
+  seller          seller   @relation(fields: [seller_id], references: [id], onDelete: Cascade)
+
+  @@index([seller_id])
+  @@index([field_name])
+  @@index([created_at])
+}
+
+// Session management for logout functionality
+model seller_session {
+  id              String   @id @default(uuid())
+  seller_id       Int
+  user_id         Int
+  device_info     String?
+  ip_address      String?
+  login_time      DateTime @default(now())
+  last_activity   DateTime @default(now())
+  expires_at      DateTime
+  is_active       Boolean  @default(true)
+  logout_time     DateTime?
+  logout_reason   String?  // manual, timeout, force_logout
+
+  seller          seller   @relation(fields: [seller_id], references: [id], onDelete: Cascade)
+  user            user     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([seller_id])
+  @@index([user_id])
+  @@index([expires_at])
+  @@index([is_active])
 }

@@ -2,7 +2,7 @@
 // Example of how to integrate the payment API routes into your main Express application
 
 import express from 'express';
-import paymentRoutes from '../payment_routes.js';
+import paymentRoutes from './payment_routes.js';
 
 const app = express();
 
