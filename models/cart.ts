@@ -1,6 +1,6 @@
 import express from 'express';
 import { PrismaClient, Role } from "../db/generated/prisma";
-import { authMiddleware } from './auth/middleware';
+import { authUserMiddleware } from './auth/middleware';
 import { 
     calculateCartTotal, 
     updateCartTotal, 
@@ -36,7 +36,7 @@ const prisma = new PrismaClient();
 // Add item to cart
 
 // Add item to cart (improved with utility functions)
-router.post("/add", authMiddleware, async (req, res): Promise<void> => {
+router.post("/add", authUserMiddleware, async (req, res): Promise<void> => {
     try {        // Validate required fields
         const validation = validateRequiredFields(req.body, ['productId', 'quantity', 'storeId']);
         if (!validation.isValid) {
@@ -180,7 +180,7 @@ router.post("/add", authMiddleware, async (req, res): Promise<void> => {
     }
 });
 
-router.get("/carts", authMiddleware, async (req, res) => {
+router.get("/carts", authUserMiddleware, async (req, res) => {
     try {
         const data = await prisma.cart.findMany({});
          if(!data||data.length==0){
@@ -205,7 +205,7 @@ router.get("/carts", authMiddleware, async (req, res) => {
 })
 
 // Remove item from cart
-router.delete("/remove/:cartItemId", authMiddleware, async (req, res): Promise<void> => {
+router.delete("/remove/:cartItemId", authUserMiddleware, async (req, res): Promise<void> => {
     try {
         const { cartItemId } = req.params;
 
@@ -238,7 +238,7 @@ router.delete("/remove/:cartItemId", authMiddleware, async (req, res): Promise<v
 });
 
 // Update cart item quantity
-router.put("/update/:cartItemId", authMiddleware, async (req, res): Promise<void> => {
+router.put("/update/:cartItemId", authUserMiddleware, async (req, res): Promise<void> => {
     try {
         const { cartItemId } = req.params;
         const { quantity } = req.body;        if (!quantity || quantity < 1) {
@@ -288,7 +288,7 @@ router.put("/update/:cartItemId", authMiddleware, async (req, res): Promise<void
 });
 
 // Clear entire cart
-router.delete("/clear", authMiddleware, async (req, res): Promise<void> => {
+router.delete("/clear", authUserMiddleware, async (req, res): Promise<void> => {
     try {
         const cart = await prisma.cart.findFirst({
             where: { 
@@ -316,5 +316,6 @@ router.delete("/clear", authMiddleware, async (req, res): Promise<void> => {
         res.status(500).json({ error: 'Failed to clear cart' });
     }
 });
+const cartRoutes = router
 
-export default router;
+export default cartRoutes;

@@ -1,5 +1,5 @@
 import express from 'express';
-import { authMiddleware } from './auth/middleware';
+import { authSellerMiddleware } from './auth/middleware';
 import { PrismaClient } from '../db/generated/prisma';
 
 const prisma = new PrismaClient();
@@ -11,7 +11,7 @@ sellerDashboard.use(express.json());
 // ========== SELLER ENDPOINTS ==========
 
 // Create seller profile
-sellerDashboard.post("/seller/create", authMiddleware, async (req, res): Promise<void> => {
+sellerDashboard.post("/seller/create", authSellerMiddleware, async (req, res): Promise<void> => {
     try {
         const { phone, business_license, tax_id } = req.body;
         
@@ -59,7 +59,7 @@ sellerDashboard.post("/seller/create", authMiddleware, async (req, res): Promise
 });
 
 // Get seller profile
-sellerDashboard.get("/seller/profile", authMiddleware, async (req, res): Promise<void> => {
+sellerDashboard.get("/seller/profile", authSellerMiddleware, async (req, res): Promise<void> => {
     try {
         const seller = await prisma.seller.findUnique({
             where: { user_id: req.userId as number },
@@ -101,7 +101,7 @@ sellerDashboard.get("/seller/profile", authMiddleware, async (req, res): Promise
 });
 
 // Update seller profile
-sellerDashboard.put("/seller/update", authMiddleware, async (req, res): Promise<void> => {
+sellerDashboard.put("/seller/update", authSellerMiddleware, async (req, res): Promise<void> => {
     try {
         const { phone, business_license, tax_id, is_verified } = req.body;
 
@@ -137,7 +137,7 @@ sellerDashboard.put("/seller/update", authMiddleware, async (req, res): Promise<
 // ========== SELLER ANALYTICS ENDPOINTS ==========
 
 // Get dashboard analytics
-sellerDashboard.get("/analytics/dashboard", authMiddleware, async (req, res): Promise<void> => {
+sellerDashboard.get("/analytics/dashboard", authSellerMiddleware, async (req, res): Promise<void> => {
     try {
         const { store_id, date } = req.query;
 
@@ -242,7 +242,7 @@ sellerDashboard.get("/analytics/dashboard", authMiddleware, async (req, res): Pr
 });
 
 // Get analytics for date range
-sellerDashboard.get("/analytics/range", authMiddleware, async (req, res): Promise<void> => {
+sellerDashboard.get("/analytics/range", authSellerMiddleware, async (req, res): Promise<void> => {
     try {
         const { store_id, start_date, end_date } = req.query;
 
@@ -319,7 +319,7 @@ sellerDashboard.get("/analytics/range", authMiddleware, async (req, res): Promis
 // ========== SALES REPORT ENDPOINTS ==========
 
 // Generate sales report
-sellerDashboard.post("/reports/generate", authMiddleware, async (req, res): Promise<void> => {
+sellerDashboard.post("/reports/generate", authSellerMiddleware, async (req, res): Promise<void> => {
     try {
         const { store_id, report_type, start_date, end_date, custom_data } = req.body;
 
@@ -481,7 +481,7 @@ sellerDashboard.post("/reports/generate", authMiddleware, async (req, res): Prom
 });
 
 // Get sales reports
-sellerDashboard.get("/reports", authMiddleware, async (req, res): Promise<void> => {
+sellerDashboard.get("/reports", authSellerMiddleware, async (req, res): Promise<void> => {
     try {
         const { store_id, report_type, limit = '10' } = req.query;
 
@@ -549,7 +549,7 @@ sellerDashboard.get("/reports", authMiddleware, async (req, res): Promise<void> 
 // ========== STORE PERFORMANCE ENDPOINTS ==========
 
 // Get store performance metrics
-sellerDashboard.get("/performance/:store_id", authMiddleware, async (req, res): Promise<void> => {
+sellerDashboard.get("/performance/:store_id", authSellerMiddleware, async (req, res): Promise<void> => {
     try {
         const { store_id } = req.params;
         if (!store_id) {
@@ -626,7 +626,7 @@ sellerDashboard.get("/performance/:store_id", authMiddleware, async (req, res): 
 });
 
 // Update store performance metrics
-sellerDashboard.put("/performance/:store_id", authMiddleware, async (req, res): Promise<void> => {
+sellerDashboard.put("/performance/:store_id", authSellerMiddleware, async (req, res): Promise<void> => {
     try {
         const { store_id } = req.params;
         if (!store_id) {
@@ -670,7 +670,7 @@ sellerDashboard.put("/performance/:store_id", authMiddleware, async (req, res): 
 // ========== COMPREHENSIVE SELLER REPORTS ENDPOINTS ==========
 
 // Get earnings report (daily, weekly, monthly)
-sellerDashboard.get("/reports/earnings", authMiddleware, async (req, res): Promise<void> => {
+sellerDashboard.get("/reports/earnings", authSellerMiddleware, async (req, res): Promise<void> => {
     try {
         const { store_id, period = 'daily', start_date, end_date } = req.query;
 
@@ -847,7 +847,7 @@ sellerDashboard.get("/reports/earnings", authMiddleware, async (req, res): Promi
 });
 
 // Get order status summary
-sellerDashboard.get("/reports/order-status", authMiddleware, async (req, res): Promise<void> => {
+sellerDashboard.get("/reports/order-status", authSellerMiddleware, async (req, res): Promise<void> => {
     try {
         const { store_id, period = 'monthly' } = req.query;
 
@@ -964,7 +964,7 @@ sellerDashboard.get("/reports/order-status", authMiddleware, async (req, res): P
 });
 
 // Export report as CSV
-sellerDashboard.get("/reports/export/csv", authMiddleware, async (req, res): Promise<void> => {
+sellerDashboard.get("/reports/export/csv", authSellerMiddleware, async (req, res): Promise<void> => {
     try {
         const { store_id, report_type = 'earnings', period = 'monthly', start_date, end_date } = req.query;
 
@@ -1107,7 +1107,7 @@ sellerDashboard.get("/reports/export/csv", authMiddleware, async (req, res): Pro
 });
 
 // Generate PDF report (simplified version - in production, use a proper PDF library)
-sellerDashboard.get("/reports/export/pdf", authMiddleware, async (req, res): Promise<void> => {
+sellerDashboard.get("/reports/export/pdf", authSellerMiddleware, async (req, res): Promise<void> => {
     try {
         const { store_id, report_type = 'earnings', period = 'monthly' } = req.query;
 

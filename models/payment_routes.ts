@@ -1,6 +1,6 @@
 import express from 'express';
 import type { Request, Response } from 'express';
-import { PrismaClient } from './db/generated/prisma';
+import { PrismaClient } from '../db/generated/prisma';
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -190,7 +190,7 @@ router.get('/settlements/:id', async (req: Request, res: Response) => {
     });
 
     if (!settlement) {
-      return res.status(404).json({
+       res.status(404).json({
         success: false,
         message: 'Settlement not found'
       });

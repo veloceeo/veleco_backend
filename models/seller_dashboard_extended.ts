@@ -1,5 +1,5 @@
 import express from 'express';
-import { authMiddleware } from './auth/middleware';
+import { authSellerMiddleware } from './auth/middleware';
 import { PrismaClient } from '../db/generated/prisma';
 
 const prisma = new PrismaClient();
@@ -11,7 +11,7 @@ sellerDashboardExtended.use(express.json());
 // ========== STORE HOURS ENDPOINTS ==========
 
 // Get store hours
-sellerDashboardExtended.get("/store-hours/:store_id", authMiddleware, async (req, res): Promise<void> => {
+sellerDashboardExtended.get("/store-hours/:store_id", authSellerMiddleware, async (req, res): Promise<void> => {
     try {
         const { store_id } = req.params;
         const storeId = Number(store_id);
@@ -34,20 +34,20 @@ sellerDashboardExtended.get("/store-hours/:store_id", authMiddleware, async (req
 
         const storeHours = await prisma.store_hours.findMany({
             where: { store_id: storeId },
-            orderBy: { day_of_week: 'asc' }
+            orderBy: { day: 'asc' }
         });
 
         // If no hours are set, create default hours (9 AM to 9 PM, closed on Sunday)
         if (storeHours.length === 0) {
             const defaultHours = [];
+            const dayNames = ["SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"];
             for (let day = 0; day <= 6; day++) {
                 defaultHours.push({
                     store_id: storeId,
-                    day_of_week: day,
-                    is_open: day !== 0, // Closed on Sunday (0)
-                    opening_time: day !== 0 ? "09:00" : null,
-                    closing_time: day !== 0 ? "21:00" : null,
-                    is_24_hours: false
+                    day: dayNames[day],
+                    open_time: day !== 0 ? "09:00" : null,
+                    close_time: day !== 0 ? "21:00" : null,
+                    is_closed: day === 0 // Closed on Sunday (0)
                 });
             }
 
@@ -78,7 +78,7 @@ sellerDashboardExtended.get("/store-hours/:store_id", authMiddleware, async (req
 });
 
 // Update store hours
-sellerDashboardExtended.put("/store-hours/:store_id", authMiddleware, async (req, res): Promise<void> => {
+sellerDashboardExtended.put("/store-hours/:store_id", authSellerMiddleware, async (req, res): Promise<void> => {
     try {
         const { store_id } = req.params;
         const storeId = Number(store_id);
@@ -152,7 +152,7 @@ sellerDashboardExtended.put("/store-hours/:store_id", authMiddleware, async (req
 // ========== INVENTORY ALERTS ENDPOINTS ==========
 
 // Get inventory alerts
-sellerDashboardExtended.get("/alerts/:store_id", authMiddleware, async (req, res): Promise<void> => {
+sellerDashboardExtended.get("/alerts/:store_id", authSellerMiddleware, async (req, res): Promise<void> => {
     try {
         const { store_id } = req.params;
         const { is_resolved, priority, alert_type } = req.query;
@@ -214,7 +214,7 @@ sellerDashboardExtended.get("/alerts/:store_id", authMiddleware, async (req, res
 });
 
 // Create inventory alert
-sellerDashboardExtended.post("/alerts", authMiddleware, async (req, res): Promise<void> => {
+sellerDashboardExtended.post("/alerts", authSellerMiddleware, async (req, res): Promise<void> => {
     try {
         const { store_id, product_id, alert_type, threshold_value, message, priority } = req.body;
 
@@ -282,7 +282,7 @@ sellerDashboardExtended.post("/alerts", authMiddleware, async (req, res): Promis
 });
 
 // Resolve inventory alert
-sellerDashboardExtended.put("/alerts/:alert_id/resolve", authMiddleware, async (req, res): Promise<void> => {
+sellerDashboardExtended.put("/alerts/:alert_id/resolve", authSellerMiddleware, async (req, res): Promise<void> => {
     try {
         const { alert_id } = req.params;
         const alertId = Number(alert_id);
@@ -340,7 +340,7 @@ sellerDashboardExtended.put("/alerts/:alert_id/resolve", authMiddleware, async (
 // ========== STORE REVIEWS ENDPOINTS ==========
 
 // Get store reviews
-sellerDashboardExtended.get("/reviews/:store_id", authMiddleware, async (req, res): Promise<void> => {
+sellerDashboardExtended.get("/reviews/:store_id", authSellerMiddleware, async (req, res): Promise<void> => {
     try {
         const { store_id } = req.params;
         const { rating, is_verified, limit = '20', offset = '0' } = req.query;
@@ -430,7 +430,7 @@ sellerDashboardExtended.get("/reviews/:store_id", authMiddleware, async (req, re
 });
 
 // Mark review as featured
-sellerDashboardExtended.put("/reviews/:review_id/feature", authMiddleware, async (req, res): Promise<void> => {
+sellerDashboardExtended.put("/reviews/:review_id/feature", authSellerMiddleware, async (req, res): Promise<void> => {
     try {
         const { review_id } = req.params;
         const { is_featured } = req.body;
@@ -486,7 +486,7 @@ sellerDashboardExtended.put("/reviews/:review_id/feature", authMiddleware, async
 // ========== DASHBOARD NOTIFICATIONS ENDPOINTS ==========
 
 // Get notifications
-sellerDashboardExtended.get("/notifications", authMiddleware, async (req, res): Promise<void> => {
+sellerDashboardExtended.get("/notifications", authSellerMiddleware, async (req, res): Promise<void> => {
     try {
         const { store_id, is_read, is_urgent, notification_type, limit = '20' } = req.query;
 
@@ -554,7 +554,7 @@ sellerDashboardExtended.get("/notifications", authMiddleware, async (req, res): 
 });
 
 // Create notification
-sellerDashboardExtended.post("/notifications", authMiddleware, async (req, res): Promise<void> => {
+sellerDashboardExtended.post("/notifications", authSellerMiddleware, async (req, res): Promise<void> => {
     try {
         const { store_id, title, message, notification_type, is_urgent, action_url, action_text, expires_at } = req.body;
 
@@ -610,7 +610,7 @@ sellerDashboardExtended.post("/notifications", authMiddleware, async (req, res):
 });
 
 // Mark notification as read
-sellerDashboardExtended.put("/notifications/:notification_id/read", authMiddleware, async (req, res): Promise<void> => {
+sellerDashboardExtended.put("/notifications/:notification_id/read", authSellerMiddleware, async (req, res): Promise<void> => {
     try {
         const { notification_id } = req.params;
         const notificationId = Number(notification_id);
@@ -645,7 +645,7 @@ sellerDashboardExtended.put("/notifications/:notification_id/read", authMiddlewa
 });
 
 // Mark all notifications as read
-sellerDashboardExtended.put("/notifications/read-all", authMiddleware, async (req, res): Promise<void> => {
+sellerDashboardExtended.put("/notifications/read-all", authSellerMiddleware, async (req, res): Promise<void> => {
     try {
         const { store_id } = req.body;
 
@@ -682,7 +682,7 @@ sellerDashboardExtended.put("/notifications/read-all", authMiddleware, async (re
 // ========== ACTION LOG ENDPOINTS ==========
 
 // Log dashboard action
-sellerDashboardExtended.post("/actions/log", authMiddleware, async (req, res): Promise<void> => {
+sellerDashboardExtended.post("/actions/log", authSellerMiddleware, async (req, res): Promise<void> => {
     try {
         const { store_id, action_type, action_description, metadata, ip_address, user_agent } = req.body;
 
@@ -723,7 +723,7 @@ sellerDashboardExtended.post("/actions/log", authMiddleware, async (req, res): P
 });
 
 // Get action logs
-sellerDashboardExtended.get("/actions/logs", authMiddleware, async (req, res): Promise<void> => {
+sellerDashboardExtended.get("/actions/logs", authSellerMiddleware, async (req, res): Promise<void> => {
     try {
         const { store_id, action_type, start_date, end_date, limit = '50' } = req.query;
 
