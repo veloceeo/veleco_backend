@@ -31,6 +31,7 @@ model user {
   seller seller?
   store_reviews store_review[]
   seller_sessions       seller_session[]
+  support_tickets       support_ticket[]
 }
 
 enum Role {
@@ -77,6 +78,7 @@ model store {
   open  StoreOpenStatus @default(OPEN)
   store_staff  store_staff[] // Added relation field for store staff
   bank seller_bank_account[]
+  support_tickets support_ticket[]
 }
 
 enum StoreOpenStatus {
@@ -213,6 +215,7 @@ model seller {
   bank_accounts         seller_bank_account[]
   profile_updates       seller_profile_update[]
   sessions              seller_session[]
+  support_tickets       support_ticket[]
 }
 
 // Seller Dashboard Analytics - Tracks daily performance metrics
@@ -838,5 +841,179 @@ model seller_session {
   @@index([seller_id])
   @@index([user_id])
   @@index([expires_at])
+  @@index([is_active])
+}
+
+// ============ SUPPORT TICKET SYSTEM ============
+
+// Support ticket categories
+enum TicketCategory {
+  TECHNICAL_ISSUE
+  BILLING
+  ACCOUNT
+  PRODUCT
+  ORDER
+  PAYMENT
+  GENERAL
+  FEATURE_REQUEST
+  BUG_REPORT
+}
+
+// Ticket priority levels
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+  CRITICAL
+}
+
+// Ticket status
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  WAITING_FOR_RESPONSE
+  RESOLVED
+  CLOSED
+  REOPENED
+}
+
+// Main support ticket model
+model support_ticket {
+  id                Int              @id @default(autoincrement())
+  ticket_number     String           @unique // Auto-generated: TKT-YYYY-XXXXXX
+  user_id           Int?             // Optional - can be anonymous
+  seller_id         Int?             // Optional - for seller-specific tickets
+  store_id          Int?             // Optional - for store-specific tickets
+  
+  // Ticket details
+  subject           String
+  description       String           @db.Text
+  category          TicketCategory
+  priority          TicketPriority   @default(MEDIUM)
+  status            TicketStatus     @default(OPEN)
+  
+  // Contact information (for anonymous tickets)
+  contact_name      String?
+  contact_email     String
+  contact_phone     String?
+  
+  // Ticket metadata
+  browser_info      String?
+  device_info       String?
+  ip_address        String?
+  user_agent        String?
+  page_url          String?          // URL where ticket was created
+  
+  // Assignment and tracking
+  assigned_to       String?          // Support agent ID/email
+  resolution        String?          @db.Text
+  resolution_date   DateTime?
+  
+  // File attachments
+  attachments       Json?            // Array of file URLs/paths
+  
+  // Timestamps
+  created_at        DateTime         @default(now())
+  updated_at        DateTime         @updatedAt
+  last_response_at  DateTime?
+  
+  // Relations
+  user              user?            @relation(fields: [user_id], references: [id], onDelete: SetNull)
+  seller            seller?          @relation(fields: [seller_id], references: [id], onDelete: SetNull)
+  store             store?           @relation(fields: [store_id], references: [id], onDelete: SetNull)
+  responses         ticket_response[]
+  email_logs        ticket_email_log[]
+
+  @@index([ticket_number])
+  @@index([user_id])
+  @@index([seller_id])
+  @@index([store_id])
+  @@index([status])
+  @@index([category])
+  @@index([priority])
+  @@index([created_at])
+  @@index([contact_email])
+}
+
+// Ticket responses/comments
+model ticket_response {
+  id                Int              @id @default(autoincrement())
+  ticket_id         Int
+  
+  // Response details
+  message           String           @db.Text
+  is_internal       Boolean          @default(false) // Internal notes vs customer-facing
+  is_from_customer  Boolean          @default(false) // true if from customer, false if from support
+  
+  // Author information
+  author_type       String           // 'customer', 'support', 'system'
+  author_name       String?
+  author_email      String?
+  author_id         String?          // User ID or support agent ID
+  
+  // Attachments
+  attachments       Json?            // Array of file URLs/paths
+  
+  // Timestamps
+  created_at        DateTime         @default(now())
+  updated_at        DateTime         @updatedAt
+  
+  // Relations
+  ticket            support_ticket   @relation(fields: [ticket_id], references: [id], onDelete: Cascade)
+
+  @@index([ticket_id])
+  @@index([created_at])
+  @@index([is_from_customer])
+  @@index([author_type])
+}
+
+// Email notification logs for tickets
+model ticket_email_log {
+  id                Int              @id @default(autoincrement())
+  ticket_id         Int
+  
+  // Email details
+  email_type        String           // 'ticket_created', 'response_added', 'status_changed', etc.
+  recipient_email   String
+  recipient_name    String?
+  subject           String
+  body              String           @db.Text
+  
+  // Send status
+  status            String           @default("pending") // pending, sent, failed
+  sent_at           DateTime?
+  error_message     String?
+  
+  // Email service details
+  message_id        String?          // Email service message ID
+  provider          String?          // 'nodemailer', 'sendgrid', etc.
+  
+  // Timestamps
+  created_at        DateTime         @default(now())
+  updated_at        DateTime         @updatedAt
+  
+  // Relations
+  ticket            support_ticket   @relation(fields: [ticket_id], references: [id], onDelete: Cascade)
+
+  @@index([ticket_id])
+  @@index([email_type])
+  @@index([status])
+  @@index([recipient_email])
+  @@index([created_at])
+}
+
+// Support ticket templates for common issues
+model ticket_template {
+  id                Int              @id @default(autoincrement())
+  name              String
+  category          TicketCategory
+  subject_template  String
+  body_template     String           @db.Text
+  is_active         Boolean          @default(true)
+  created_at        DateTime         @default(now())
+  updated_at        DateTime         @updatedAt
+
+  @@index([category])
   @@index([is_active])
 }

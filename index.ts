@@ -10,6 +10,7 @@ import paymentRoutes from './models/payment_routes.js';
 import notification from "./models/notification_routes.js";
 import settingsManagementRoutes from "./models/settings_management_routes.js";
 import cartRoutes from "./models/cart";
+import supportRoutes from './support_ticket_routes';
 const app = express();
 
 app.use(express.json());
@@ -24,7 +25,7 @@ app.use("/data",sellerDashboardExtended);
 app.use('/api/payments', paymentRoutes); // Use the payment routes
 app.use("/api/notifications", notification);
 app.use("/api/settings",settingsManagementRoutes);
-
+app.use('/api/support', supportRoutes);
 app.listen(3000, () => {
     console.log("server run at 3000");
 })
