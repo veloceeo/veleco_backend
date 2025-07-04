@@ -14,6 +14,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+
 model user {
   id         Int       @id @default(autoincrement())
   email      String    @unique
@@ -21,23 +22,31 @@ model user {
   name       String?
   phone      String
   created_At DateTime?
-  role       Role      @default(customer)
-  store      store[]
   cart       cart[]
   pincode    String?
   latitude   Float?
   longitude  Float?
   order orders[]
-  seller seller?
   store_reviews store_review[]
   seller_sessions       seller_session[]
   support_tickets       support_ticket[]
+  session session[]
+  type  String @default("user")
 }
+ model admin{
+  id Int @default(autoincrement())
+  name String
+  email String @unique
+  password String
+  type  String @default("admin")
+ }
 
-enum Role {
-  customer
-  seller
-  admin
+model session {
+  id Int @default(autoincrement())
+  session_date DateTime @default(now())
+  user_id Int 
+  user user @relation(fields: [user_id], references: [id])
+  @@id([id])
 }
 
 model store {
@@ -56,13 +65,13 @@ model store {
   store_close  DateTime?   @default(now())
   store_status StoreStatus @default(open)
   store_type   StoreType   @default(retail)
-  user         user        @relation(fields: [user_id], references: [id])
+  seller_id     Int
+  seller seller @relation(fields: [seller_id],references: [id])
   cart         cart[]
   product      product[]
   longitude    Float
   latitude     Float
   order orders[]
-  seller seller[]
   seller_analytics seller_analytics[]
   sales_reports sales_report[]
   earnings_reports earnings_report[]
@@ -192,12 +201,18 @@ enum OrderStatus {
 
 model seller {
   id Int @id @default(autoincrement())
-  user_id Int @unique
-  user user @relation(fields: [user_id], references: [id])
+  seller_name String
+  seller_email String  @unique
+  seller_password String
+  seller_image String?
+  seller_phone String
+  seller_address String?
+  seller_latitude Float?
+  seller_longitude Float?
+  type String @default("seller")
   store store[]
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
-  phone String
   business_license String?
   tax_id String?
   is_verified Boolean @default(false)

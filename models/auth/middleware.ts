@@ -6,7 +6,7 @@ export interface AuthenticatedRequest extends express.Request {
     role?: string; // Optional role field to store the user's role
 }
 
-export const authMiddleware = (req: express.Request, res: express.Response, next: express.NextFunction): void => {
+export const authUserMiddleware = (req: express.Request, res: express.Response, next: express.NextFunction): void => {
     const header = req.headers['auth'] as string;
 
     if (!header) {
@@ -16,7 +16,7 @@ export const authMiddleware = (req: express.Request, res: express.Response, next
 
     try {
         const decode = jwt.verify(header, process.env.JWT_SECRET || "hello") as any;
-        if(decode.role!=="seller") {
+        if(decode.type!=="user") {
             res.status(403).json({ error: 'Access denied' });
             return;
         }
@@ -37,7 +37,7 @@ export const authSellerMiddleware = (req: express.Request, res: express.Response
 
     try {
         const decode = jwt.verify(header, process.env.JWT_SECRET || "hello") as any;
-        if(decode.role!=="seller") {
+        if(decode.type!=="seller") {
             res.status(403).json({ error: 'Access denied' });
             return;
         }
@@ -60,7 +60,7 @@ export const authAdminMiddleware = (req: express.Request, res: express.Response,
 
     try {
         const decode = jwt.verify(header, process.env.JWT_SECRET || "hello") as any;
-        if (decode.role !== 'admin') {
+        if (decode.type !== 'admin') {
             res.status(403).json({ error: 'Access denied' });
             return;
         }
@@ -72,24 +72,5 @@ export const authAdminMiddleware = (req: express.Request, res: express.Response,
     }
 }
 
-export const authUserMiddleware = (req: express.Request, res: express.Response, next: express.NextFunction): void => {
-    const header = req.headers['auth'] as string;
-
-    if (!header) {
-        res.status(401).json({ error: 'No auth token provided' });
-        return;
-    }
-
-    try {
-        const decode = jwt.verify(header, process.env.JWT_SECRET || "hello") as any;
-        if (decode.role !== 'user') {
-            res.status(403).json({ error: 'Access denied' });
-            return;
-        }
-        req.userId = decode.id;
-        next();
-    } catch (error) {
-        res.status(401).json({ error: 'Invalid auth token' });
-        return;
-    }
-}
+// You can export a default or named middleware as needed, for example:
+export const authMiddleware = authUserMiddleware;

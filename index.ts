@@ -1,5 +1,5 @@
 import express from "express"
-import user from "./models/user";
+import user from "./models/roles/user.js";
 import store from "./models/store";
 import product from "./models/products";
 import order from "./models/orders";
@@ -11,14 +11,16 @@ import notification from "./models/notification_routes.js";
 import settingsManagementRoutes from "./models/settings_management_routes.js";
 import cartRoutes from "./models/cart";
 import supportRoutes from './support_ticket_routes';
+import seller from "./models/roles/seller.js";
 const app = express();
 
 app.use(express.json());
-app.use("/user", user);
+app.use("/api/user", user);
 app.use("/store", store);
 app.use("/product", product);
 app.use("/cart",cartRoutes);
 app.use("/order", order);
+app.use("/api/seller",seller);
 app.use('/cart-items', cartItemsRouter);
 app.use("/dashboard", sellerDashboard);
 app.use("/data",sellerDashboardExtended);
