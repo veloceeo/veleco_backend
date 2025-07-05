@@ -4,47 +4,58 @@ import z from "zod";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import * as OTPAuth from "otpauth";
-// import { sendEmail } from "nodemailer";
-import nodemailer from "nodemailer";
-
-// Utility function to send email using nodemailer
-
-import { logout } from "../settings_management_api";
-
+import mailer from "nodemailer";
 const admin = express.Router();
 const prisma = new PrismaClient();
 
 admin.use(express.json());
-export async function sendEmail({ to, subject, html }: { to: string, subject: string, html: string }) {
-    const transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST || "smtp.example.com",
-        port: Number(process.env.SMTP_PORT) || 587,
-        secure: false,
-        auth: {
-            user: process.env.SMTP_USER || "user@example.com",
-            pass: process.env.SMTP_PASS || "password"
-        }
-    });
 
-    await transporter.sendMail({
-        from: process.env.SMTP_FROM || '"E-Commerce Admin" <admin@example.com>',
-        to,
-        subject,
-        html
-    });
-}
 // JWT Secret (should be in environment variables)
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-here";
 
-// OTP Configuration
+// OTP Configuration - Fixed secret key (base32 compatible)
 const otp = new OTPAuth.TOTP({
     issuer: "E-Commerce Admin",
     label: "Admin Panel",
     algorithm: "SHA1",
     digits: 6,
     period: 300, // 5 minutes
-    secret: "ADMIN_SECRET_KEY_2024"
+    secret: "JBSWY3DPEHPK3PXP" // Valid base32 secret
 });
+
+// Alternative: Generate a random base32 secret
+const generateBase32Secret = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+    let result = '';
+    for (let i = 0; i < 32; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+};
+
+// You can also use this for a unique secret per admin:
+// const adminOtpSecret = generateBase32Secret();
+
+// Email utility function
+export async function sendEmail({ to, subject, html }: { to: string, subject: string, html: string }) {
+    const transport = mailer.createTransport({
+        host: "smtp.gmail.com",
+        port: 587,
+        secure: false,
+        auth: {
+            user: process.env.FROM_EMAIL||"kanhadewangan681@gmail.com", // Your email
+            pass: process.env.EMAIL_PASSWORD||"qtgq sdrp nicr xwhq" // Your email password or app password
+        }
+    })
+     const info = await transport.sendMail({
+        from: "kanhadewangan681@gmail.com",
+        to:to,
+        subject: subject,    
+        html: html,
+
+     })
+     console.log("Email sent:", info.messageId);    
+}
 
 // Validation Schemas
 const adminSignupSchema = z.object({
@@ -53,7 +64,7 @@ const adminSignupSchema = z.object({
     firstName: z.string().min(2, "First name must be at least 2 characters"),
     lastName: z.string().min(2, "Last name must be at least 2 characters"),
     phone: z.string().min(10, "Phone number must be at least 10 digits"),
-    adminKey: z.string().min(1, "Admin key is required"), // Special key for admin registration
+    adminKey: z.string().min(1, "Admin key is required"),
 });
 
 const adminLoginSchema = z.object({
@@ -77,54 +88,64 @@ const changeEmailSchema = z.object({
     otp: z.string().min(6, "OTP is required")
 });
 
-const requestOTPSchema = z.object({
-    email: z.string().email("Invalid email format"),
-    type: z.enum(["email_change", "password_reset", "login"])
-});
-
 // Middleware for admin authentication
-const authAdminMiddleware = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+const authAdminMiddleware = async (req: express.Request, res: express.Response, next: express.NextFunction): Promise<void> => {
     try {
-        const token = req.headers.authorization?.replace("Bearer ", "");
-        
-        if (!token) {
-            return res.status(401).json({ error: "Access token required" });
+        const token = req.headers["auth"];
+        if (!token || (Array.isArray(token) && token.length === 0)) {
+            res.status(401).json({ error: "Access token required" });
+            return;
         }
 
-        const decoded = jwt.verify(token, JWT_SECRET) as any;
+        const tokenString = Array.isArray(token) ? token[0] : token;
+        if (!tokenString) {
+            res.status(401).json({ error: "Invalid token format" });
+            return;
+        }
         
-        const admin = await prisma.user.findUnique({
+        const decoded = jwt.verify(tokenString, JWT_SECRET) as any;
+        
+        const admin = await prisma.admin.findFirst({
             where: { id: decoded.id },
             select: {
                 id: true,
                 email: true,
-                name: true,
+                first_name: true,
+                last_name: true,
+                is_active: true,
                 type: true,
-                
             }
         });
 
-        if (!admin || admin.type !== "admin" ) {
-            return res.status(403).json({ error: "Admin access required" });
+        if (!admin || admin.type !== "ADMIN" || !admin.is_active) {
+            res.status(403).json({ error: "Admin access required" });
+            return;
         }
 
-        req.userId = admin;
+        (req as any).user = admin;
         next();
     } catch (error) {
-        return res.status(401).json({ error: "Invalid token" });
+        res.status(401).json({ error: "Invalid token" });
+        return;
     }
 };
 
 // ============ ADMIN SIGNUP ============
+// TypeScript ignore for Express router type complexity
+// @ts-ignore
 admin.post("/signup", async (req, res) => {
     try {
         const validatedData = adminSignupSchema.parse(req.body);
-        const { email, password,  name } = validatedData;
+        const { email, password, firstName, lastName, phone, adminKey } = validatedData;
 
-       
+        // Verify admin key
+        const ADMIN_REGISTRATION_KEY = process.env.ADMIN_REGISTRATION_KEY || "SUPER_SECRET_ADMIN_KEY_2024";
+        if (adminKey !== ADMIN_REGISTRATION_KEY) {
+            return res.status(403).json({ error: "Invalid admin registration key" });
+        }
 
         // Check if admin already exists
-        const existingUser = await prisma.user.findUnique({
+        const existingUser = await prisma.admin.findUnique({
             where: { email }
         });
 
@@ -136,16 +157,25 @@ admin.post("/signup", async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 12);
 
         // Create admin user
-        const newAdmin = await prisma.user.create({
+        const newAdmin = await prisma.admin.create({
             data: {
                 email,
                 password: hashedPassword,
-                name
-                
+                first_name: firstName,
+                last_name: lastName,
+                phone,
+                is_active: true,
+                created_at: new Date(),
+                updated_at: new Date()
             },
             select: {
                 id: true,
                 email: true,
+                first_name: true,
+                last_name: true,
+                phone: true,
+                created_at: true,
+                type: true
             }
         });
 
@@ -154,7 +184,7 @@ admin.post("/signup", async (req, res) => {
             { 
                 id: newAdmin.id, 
                 email: newAdmin.email, 
-                role: newAdmin.type 
+                role: newAdmin.type || "ADMIN" 
             },
             JWT_SECRET,
             { expiresIn: "24h" }
@@ -168,7 +198,7 @@ admin.post("/signup", async (req, res) => {
                 html: `
                     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                         <h2 style="color: #333;">Welcome to the Admin Panel!</h2>
-                        <p>Hello ${name},</p>
+                        <p>Hello ${firstName} ${lastName},</p>
                         <p>Your admin account has been successfully created.</p>
                         <div style="background: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
                             <h3>Account Details:</h3>
@@ -205,22 +235,58 @@ admin.post("/signup", async (req, res) => {
     }
 });
 
+admin.get("/otp",async(req,res)=>{
+    try {
+        // Generate a new OTP
+        const otpCode = otp.generate();
+          const adminEmail = req.query.email as string;
+            
+        // Send OTP via email
+        await sendEmail({
+            to: adminEmail,
+            subject: "Your OTP Code",
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h2 style="color: #333;">Your OTP Code</h2>
+                    <p>Hello,</p>
+                    <p>Your OTP code is:</p>
+                    <div style="background: #f0f8ff; padding: 20px; border-radius: 5px; text-align: center; margin: 20px 0;">
+                        <h1 style="color: #007bff; font-size: 32px; margin: 0;">${otpCode}</h1>
+                        <p style="color: #666; margin: 5px 0;">This OTP expires in 5 minutes</p>
+                    </div>
+                    <p>Please use this code to complete your authentication.</p>
+                </div>
+            `   
+        });
+        res.status(200).json({
+            success: true,
+            message: "OTP sent to your email",
+            otp: otpCode // For testing purposes, you might want to remove this in production
+        });
+    } catch (error) {
+        console.error("Error generating OTP:", error);
+        res.status(500).json({ error: "Failed to generate OTP" });
+        }
+
+
+})
 // ============ ADMIN LOGIN ============
+// @ts-ignore
 admin.post("/login", async (req, res) => {
     try {
         const validatedData = adminLoginSchema.parse(req.body);
         const { email, password, otp: providedOTP } = validatedData;
 
         // Find admin user
-        const user = await prisma.user.findUnique({
+        const user = await prisma.admin.findUnique({
             where: { email }
         });
 
-        if (!user || user.type !== "admin") {
+        if (!user || user.type !== "ADMIN") {
             return res.status(401).json({ error: "Invalid admin credentials" });
         }
 
-        if (!user) {
+        if (!user.is_active) {
             return res.status(401).json({ error: "Admin account is deactivated" });
         }
 
@@ -230,8 +296,8 @@ admin.post("/login", async (req, res) => {
             return res.status(401).json({ error: "Invalid admin credentials" });
         }
 
-        // Check if OTP is required (for enhanced security)
-        const requireOTP = process.env.ADMIN_REQUIRE_OTP === "true" || true; // Default to true for admin
+        // Check if OTP is required
+        const requireOTP = process.env.ADMIN_REQUIRE_OTP === "true";
 
         if (requireOTP) {
             if (!providedOTP) {
@@ -245,7 +311,7 @@ admin.post("/login", async (req, res) => {
                         html: `
                             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                                 <h2 style="color: #333;">Admin Login Verification</h2>
-                                <p>Hello ${user.name},</p>
+                                <p>Hello ${user.first_name},</p>
                                 <p>Someone is trying to log into your admin account. If this is you, use the OTP below:</p>
                                 <div style="background: #f0f8ff; padding: 20px; border-radius: 5px; text-align: center; margin: 20px 0;">
                                     <h1 style="color: #007bff; font-size: 32px; margin: 0;">${otpCode}</h1>
@@ -281,16 +347,19 @@ admin.post("/login", async (req, res) => {
             { 
                 id: user.id, 
                 email: user.email, 
-                role: user.type 
+                role: user.type || "ADMIN" 
             },
             JWT_SECRET,
             { expiresIn: "24h" }
         );
 
-    
-
-        // Log admin login
-        console.log(`Admin login: ${email} at ${new Date().toISOString()} from IP: ${req.ip}`);
+        // Update last login
+        await prisma.admin.update({
+            where: { email: user.email },
+            data: { 
+                updated_at: new Date()
+            }
+        });
 
         res.json({
             success: true,
@@ -298,8 +367,11 @@ admin.post("/login", async (req, res) => {
             admin: {
                 id: user.id,
                 email: user.email,
-                first_name: user.name,
-                
+                first_name: user.first_name,
+                last_name: user.last_name,
+                phone: user.phone,
+                role: user.type,
+                last_login: new Date()
             },
             token
         });
@@ -318,15 +390,18 @@ admin.post("/login", async (req, res) => {
 });
 
 // ============ CHANGE PASSWORD ============
+// @ts-ignore
 admin.put("/change-password", authAdminMiddleware, async (req, res) => {
     try {
-        const validatedData = changePasswordSchema.parse(req.body);
-        const { currentPassword, newPassword } = validatedData;
-        const adminId = req.userId;
+        const { currentPassword, newPassword } = req.body;
+        const adminEmail = (req as any).user.email;
+        
+        console.log("Admin Email:", adminEmail);
+        console.log("Request body:", req.body);
 
         // Get current admin data
-        const admin = await prisma.user.findUnique({
-            where: { id: adminId }
+        const admin = await prisma.admin.findUnique({
+            where: { email: adminEmail },
         });
 
         if (!admin) {
@@ -349,10 +424,11 @@ admin.put("/change-password", authAdminMiddleware, async (req, res) => {
         const hashedNewPassword = await bcrypt.hash(newPassword, 12);
 
         // Update password
-        await prisma.user.update({
-            where: { id: adminId },
+        await prisma.admin.update({
+            where: { email: admin.email },
             data: { 
                 password: hashedNewPassword,
+                updated_at: new Date()
             }
         });
 
@@ -364,12 +440,11 @@ admin.put("/change-password", authAdminMiddleware, async (req, res) => {
                 html: `
                     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                         <h2 style="color: #333;">Password Changed Successfully</h2>
-                        <p>Hello ${admin.name},</p>
+                        <p>Hello ${admin.first_name},</p>
                         <p>Your admin account password has been successfully changed.</p>
                         <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
                             <p><strong>Account:</strong> ${admin.email}</p>
                             <p><strong>Changed at:</strong> ${new Date().toLocaleString()}</p>
-                            <p><strong>IP Address:</strong> ${req.ip}</p>
                         </div>
                         <p>If you didn't make this change, please contact the system administrator immediately.</p>
                         <p>Best regards,<br>E-Commerce Security Team</p>
@@ -379,9 +454,6 @@ admin.put("/change-password", authAdminMiddleware, async (req, res) => {
         } catch (emailError) {
             console.error("Failed to send password change notification:", emailError);
         }
-
-        // Log password change
-        console.log(`Admin password changed: ${admin.email} at ${new Date().toISOString()} from IP: ${req.ip}`);
 
         res.json({
             success: true,
@@ -401,199 +473,24 @@ admin.put("/change-password", authAdminMiddleware, async (req, res) => {
     }
 });
 
-// ============ REQUEST OTP FOR EMAIL CHANGE ============
-admin.post("/request-email-change-otp", authAdminMiddleware, async (req, res) => {
-    try {
-        const { newEmail } = z.object({
-            newEmail: z.string().email("Invalid email format")
-        }).parse(req.body);
-
-        const adminId = req.userId;
-
-        // Check if new email is already in use
-        const existingUser = await prisma.user.findUnique({
-            where: { email: newEmail }
-        });
-
-        if (existingUser) {
-            return res.status(400).json({ error: "Email is already in use" });
-        }
-
-        // Generate OTP
-        const otpCode = otp.generate();
-
-        // Send OTP to new email
-        try {
-            await sendEmail({
-                to: newEmail,
-                subject: "Admin Email Change - Verification Required",
-                html: `
-                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                        <h2 style="color: #333;">Email Change Verification</h2>
-                        <p>Hello,</p>
-                        <p>You are requesting to change your admin account email to this address.</p>
-                        <p>Please use the OTP below to verify this email address:</p>
-                        <div style="background: #f0f8ff; padding: 20px; border-radius: 5px; text-align: center; margin: 20px 0;">
-                            <h1 style="color: #007bff; font-size: 32px; margin: 0;">${otpCode}</h1>
-                            <p style="color: #666; margin: 5px 0;">This OTP expires in 5 minutes</p>
-                        </div>
-                        <p>If you didn't request this change, please ignore this email.</p>
-                        <p>Current admin account: ${existingUser}</p>
-                        <p>Requested at: ${new Date().toLocaleString()}</p>
-                    </div>
-                `
-            });
-        } catch (emailError) {
-            console.error("Failed to send email change OTP:", emailError);
-            return res.status(500).json({ error: "Failed to send verification email" });
-        }
-
-        res.json({
-            success: true,
-            message: "Verification OTP sent to new email address"
-        });
-
-    } catch (error) {
-        if (error instanceof z.ZodError) {
-            return res.status(400).json({ 
-                error: "Validation failed", 
-                details: error.errors 
-            });
-        }
-        
-        console.error("Request email change OTP error:", error);
-        res.status(500).json({ error: "Failed to send verification OTP" });
-    }
-});
-
-// ============ CHANGE EMAIL ============
-admin.put("/change-email", authAdminMiddleware, async (req, res) => {
-    try {
-        const validatedData = changeEmailSchema.parse(req.body);
-        const { newEmail, password, otp: providedOTP } = validatedData;
-        const adminId = req.userId;
-
-        // Get current admin data
-        const admin = await prisma.user.findUnique({
-            where: { id: adminId }
-        });
-
-        if (!admin) {
-            return res.status(404).json({ error: "Admin not found" });
-        }
-
-        // Verify password
-        const isPasswordValid = await bcrypt.compare(password, admin.password);
-        if (!isPasswordValid) {
-            return res.status(400).json({ error: "Password is incorrect" });
-        }
-
-        // Verify OTP
-        const isOTPValid = otp.validate({ token: providedOTP, window: 1 });
-        if (!isOTPValid) {
-            return res.status(400).json({ error: "Invalid or expired OTP" });
-        }
-
-        // Check if new email is already in use
-        const existingUser = await prisma.user.findUnique({
-            where: { email: newEmail }
-        });
-
-        if (existingUser && existingUser.id !== adminId) {
-            return res.status(400).json({ error: "Email is already in use" });
-        }
-
-        // Update email
-        const updatedAdmin = await prisma.user.update({
-            where: { id: adminId },
-            data: { 
-                email: newEmail,
-            },
-            select: {
-                id: true,
-                email: true,
-                name: true,
-               
-            }
-        });
-
-        // Send confirmation emails
-        try {
-            // Email to old address
-            await sendEmail({
-                to: admin.email,
-                subject: "Admin Email Address Changed",
-                html: `
-                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                        <h2 style="color: #333;">Email Address Changed</h2>
-                        <p>Hello ${admin.name},</p>
-                        <p>Your admin account email has been changed from this address.</p>
-                        <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
-                            <p><strong>Old Email:</strong> ${admin.email}</p>
-                            <p><strong>New Email:</strong> ${newEmail}</p>
-                            <p><strong>Changed at:</strong> ${new Date().toLocaleString()}</p>
-                        </div>
-                        <p>If you didn't make this change, please contact the system administrator immediately.</p>
-                    </div>
-                `
-            });
-
-            // Email to new address
-            await sendEmail({
-                to: newEmail,
-                subject: "Admin Email Address Updated Successfully",
-                html: `
-                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                        <h2 style="color: #333;">Email Address Updated</h2>
-                        <p>Hello ${admin.name},</p>
-                        <p>Your admin account email has been successfully updated to this address.</p>
-                        <div style="background: #d4edda; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #28a745;">
-                            <p><strong>Account:</strong> ${newEmail}</p>
-                            <p><strong>Role:</strong> Administrator</p>
-                            <p><strong>Updated at:</strong> ${new Date().toLocaleString()}</p>
-                        </div>
-                        <p>You can now use this email address to log into your admin account.</p>
-                        <p>Best regards,<br>E-Commerce Admin Team</p>
-                    </div>
-                `
-            });
-        } catch (emailError) {
-            console.error("Failed to send email change notifications:", emailError);
-        }
-
-        // Log email change
-        console.log(`Admin email changed: ${admin.email} -> ${newEmail} at ${new Date().toISOString()} from IP: ${req.ip}`);
-
-        res.json({
-            success: true,
-            message: "Email address changed successfully",
-            admin: updatedAdmin
-        });
-
-    } catch (error) {
-        if (error instanceof z.ZodError) {
-            return res.status(400).json({ 
-                error: "Validation failed", 
-                details: error.errors 
-            });
-        }
-        
-        console.error("Change email error:", error);
-        res.status(500).json({ error: "Failed to change email address" });
-    }
-});
-
 // ============ GET ADMIN PROFILE ============
+// @ts-ignore
 admin.get("/profile", authAdminMiddleware, async (req, res) => {
     try {
-        const adminId = req.userId;
+        const adminId = (req as any).user.id;
 
-        const admin = await prisma.user.findUnique({
-            where: { id: adminId },
+        const admin = await prisma.admin.findUnique({
+            where: { email: (req as any).user.email },
             select: {
                 id: true,
                 email: true,
-                name: true,
+                first_name: true,
+                last_name: true,
+                phone: true,
+                type: true,
+                is_active: true,
+                created_at: true,
+                updated_at: true,
             }
         });
 
@@ -612,33 +509,155 @@ admin.get("/profile", authAdminMiddleware, async (req, res) => {
     }
 });
 
-// ============ UPDATE ADMIN PROFILE ============
-admin.put("/profile", authAdminMiddleware, async (req, res) => {
+// ============ LOGOUT ============
+// @ts-ignore
+admin.post("/logout", authAdminMiddleware, async(req, res) => {
     try {
-        const updateSchema = z.object({
-            firstName: z.string().min(2).optional(),
-            lastName: z.string().min(2).optional(),
-            phone: z.string().min(10).optional()
+        // Invalidate the token by not returning it or by using a blacklist strategy
+        // Here we simply respond with a success message
+        await sendEmail({
+            to: (req as any).user.email,
+            subject: "Admin Logout Notification",
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h2 style="color: #333;">Logout Successful</h2>
+                    <p>Hello ${(req as any).user.first_name},</p>
+                    <p>You have successfully logged out of the Admin Panel.</p>
+                    <p>If this wasn't you, please contact support immediately.</p>
+                    <p>Best regards,<br>E-Commerce Admin Team</p>
+                </div>
+            `
+        });
+        res.json({
+            success: true,
+            message: "Logged out successfully"
+            
+        });
+    } catch (error) {
+        console.error("Admin logout error:", error);
+        res.status(500).json({ error: "Logout failed" });
+    }
+});
+
+// ============ CHANGE EMAIL ============
+// @ts-ignore
+admin.put("/change-email", authAdminMiddleware, async (req, res) => {
+    const { newEmail, password, otp: providedOTP } = req.body;
+    try {
+        const validatedData = changeEmailSchema.parse({ newEmail, password, otp: providedOTP });
+        const adminEmail = (req as any).user.email;
+
+        // Get current admin data
+        const admin = await prisma.admin.findUnique({
+            where: { email: adminEmail },
         });
 
-        const validatedData = updateSchema.parse(req.body);
-        const adminId = req.user.id;
+        if (!admin) {
+            return res.status(404).json({ error: "Admin not found" });
+        }
 
-        const updatedAdmin = await prisma.user.update({
-            where: { id: adminId },
+        // Verify current password
+        const isCurrentPasswordValid = await bcrypt.compare(password, admin.password);
+        if (!isCurrentPasswordValid) {
+            return res.status(400).json({ error: "Current password is incorrect" });
+        }
+
+        // Check if OTP is required
+        const requireOTP = process.env.ADMIN_REQUIRE_OTP === "true";
+
+        if (requireOTP) {
+            if (!providedOTP) {
+                // Generate and send OTP
+                const otpCode = otp.generate();
+                
+                try {
+                    await sendEmail({
+                        to: admin.email,
+                        subject: "Admin Email Change - OTP Verification",
+                        html: `
+                            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                                <h2 style="color: #333;">Email Change Verification</h2>
+                                <p>Hello ${admin.first_name},</p>
+                                <p>To change your email address, please use the following OTP:</p>
+                                <div style="background: #f0f8ff; padding: 20px; border-radius: 5px; text-align: center; margin: 20px 0;">
+                                    <h1 style="color: #007bff; font-size: 32px; margin: 0;">${otpCode}</h1>
+                                    <p style="color: #666; margin: 5px 0;">This OTP expires in 5 minutes</p>
+                                </div>
+                                <p>If this wasn't you, please ignore this email.</p>
+                            </div>
+                        `
+                    });
+                } catch (emailError) {
+                    console.error("Failed to send OTP email:", emailError);
+                    return res.status(500).json({ error: "Failed to send OTP" });
+                }
+
+                return res.status(200).json({
+                    success: true,
+                    message: "OTP sent to your email",
+                    requireOTP: true
+                });
+            }
+
+            // Verify OTP
+            const isOTPValid = otp.validate({ token: providedOTP, window: 1 });
+            if (!isOTPValid) {
+                return res.status(401).json({ error: "Invalid or expired OTP" });
+            }
+        }
+        // Check if new email is already in use
+        const existingEmail = await prisma.admin.findUnique({
+            where: { email: validatedData.newEmail }
+        });
+        if (existingEmail) {
+            return res.status(400).json({ error: "Email already in use" });
+        }
+        // Update email
+        const updatedAdmin = await prisma.admin.update({
+            where: { email: admin.email },
             data: {
-                name: validatedData.firstName,
+                email: validatedData.newEmail,
+                updated_at: new Date()
             },
             select: {
                 id: true,
                 email: true,
-                name: true,
-                            }
+                first_name: true,
+                last_name: true,
+                phone: true,
+                type: true,
+                is_active: true,
+                created_at: true,
+                updated_at: true
+            }
         });
+        // Send notification email
+        try {
+            await sendEmail({
+                to: updatedAdmin.email,
+                subject: "Admin Email Changed Successfully",
+                html: `
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                        <h2 style="color: #333;">Email Changed Successfully</h2>
+                        <p>Hello ${updatedAdmin.first_name},</p>
+                        <p>Your admin account email has been successfully changed.</p>
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                            <p><strong>New Email:</strong> ${updatedAdmin.email}</p>
+                            <p><strong>Changed at:</strong> ${new Date().toLocaleString()}</p>
+                        </div>
+                        <p>If you didn't make this change, please contact the system administrator immediately.</p>
+                        <p>Best regards,<br>E-Commerce Security Team</p>
+                    </div>
+                `
+            });
+        } catch (emailError) {
+            console.error("Failed to send email change notification:", emailError);
+            return res.status(500).json({ error: "Failed to send email change notification" });
+        }
 
         res.json({
             success: true,
-            message: "Profile updated successfully",
+            message: "Email changed successfully",
             admin: updatedAdmin
         });
 
@@ -650,181 +669,10 @@ admin.put("/profile", authAdminMiddleware, async (req, res) => {
             });
         }
         
-        console.error("Update admin profile error:", error);
-        res.status(500).json({ error: "Failed to update profile" });
+        console.error("Change email error:", error);
+        res.status(500).json({ error: "Failed to change email" });
     }
 });
 
-// ============ LOGOUT ============
-admin.post("/logout", authAdminMiddleware, async (req, res) => {
-    try {
-        // In a real application, you might want to blacklist the token
-        // or store it in a blacklist table/cache
-        
-        // Log admin logout
-        console.log(`Admin logout: ${req.userId} at ${new Date().toISOString()} from IP: ${req.ip}`);
-
-        res.json({
-            success: true,
-            message: "Logged out successfully",
-            logout:req.ip
-                
-        });
-
-    } catch (error) {
-        console.error("Admin logout error:", error);
-        res.status(500).json({ error: "Logout failed" });
-    }
-});
-
-// ============ REQUEST PASSWORD RESET ============
-admin.post("/request-password-reset", async (req, res) => {
-    try {
-        const { email } = z.object({
-            email: z.string().email("Invalid email format")
-        }).parse(req.body);
-
-        const admin = await prisma.user.findUnique({
-            where: { email }
-        });
-
-        if (!admin || admin.type !== "admin") {
-            // Don't reveal if admin exists or not for security
-            return res.json({
-                success: true,
-                message: "If an admin account exists with this email, a reset link has been sent"
-            });
-        }
-
-        // Generate OTP for password reset
-        const otpCode = otp.generate();
-
-        try {
-            await sendEmail({
-                to: email,
-                subject: "Admin Password Reset Request",
-                html: `
-                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                        <h2 style="color: #333;">Password Reset Request</h2>
-                        <p>Hello ${admin.name},</p>
-                        <p>You requested a password reset for your admin account.</p>
-                        <p>Use the OTP below to reset your password:</p>
-                        <div style="background: #f0f8ff; padding: 20px; border-radius: 5px; text-align: center; margin: 20px 0;">
-                            <h1 style="color: #007bff; font-size: 32px; margin: 0;">${otpCode}</h1>
-                            <p style="color: #666; margin: 5px 0;">This OTP expires in 5 minutes</p>
-                        </div>
-                        <p>If you didn't request this reset, please ignore this email and secure your account.</p>
-                        <p>Request made at: ${new Date().toLocaleString()}</p>
-                    </div>
-                `
-            });
-        } catch (emailError) {
-            console.error("Failed to send password reset email:", emailError);
-            return res.status(500).json({ error: "Failed to send password reset email" });
-        }
-
-        res.json({
-            success: true,
-            message: "If an admin account exists with this email, a reset OTP has been sent"
-        });
-
-    } catch (error) {
-        if (error instanceof z.ZodError) {
-            return res.status(400).json({ 
-                error: "Validation failed", 
-                details: error.errors 
-            });
-        }
-        
-        console.error("Request password reset error:", error);
-        res.status(500).json({ error: "Failed to process password reset request" });
-    }
-});
-
-// ============ RESET PASSWORD ============
-admin.post("/reset-password", async (req, res) => {
-    try {
-        const resetSchema = z.object({
-            email: z.string().email("Invalid email format"),
-            otp: z.string().min(6, "OTP is required"),
-            newPassword: z.string().min(8, "Password must be at least 8 characters"),
-            confirmPassword: z.string().min(1, "Password confirmation is required")
-        }).refine((data) => data.newPassword === data.confirmPassword, {
-            message: "Passwords don't match",
-            path: ["confirmPassword"],
-        });
-
-        const validatedData = resetSchema.parse(req.body);
-        const { email, otp: providedOTP, newPassword } = validatedData;
-
-        // Find admin
-        const admin = await prisma.user.findUnique({
-            where: { email }
-        });
-
-        if (!admin || admin.type !== "admin") {
-             res.status(400).json({ error: "Invalid reset request" });
-        }
-
-        // Verify OTP
-        const isOTPValid = otp.validate({ token: providedOTP, window: 1 });
-        if (!isOTPValid) {
-             res.status(400).json({ error: "Invalid or expired OTP" });
-        }
-
-        // Hash new password
-        const hashedPassword = await bcrypt.hash(newPassword, 12);
-         
-        await prisma.user.update({
-            where: { id: admin?.id },
-            data: { 
-                password: hashedPassword,
-            }
-        });
-
-        // Send confirmation email
-        try {
-            await sendEmail({
-                to: email,
-                subject: "Admin Password Reset Successfully",
-                html: `
-                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                        <h2 style="color: #333;">Password Reset Successful</h2>
-                        <p>Hello ${admin.name},</p>
-                        <p>Your admin account password has been successfully reset.</p>
-                        <div style="background: #d4edda; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #28a745;">
-                            <p><strong>Account:</strong> ${email}</p>
-                            <p><strong>Reset at:</strong> ${new Date().toLocaleString()}</p>
-                        </div>
-                        <p>You can now log in with your new password.</p>
-                        <p>If you didn't request this reset, please contact the system administrator immediately.</p>
-                        <p>Best regards,<br>E-Commerce Security Team</p>
-                    </div>
-                `
-            });
-        } catch (emailError) {
-            console.error("Failed to send password reset confirmation:", emailError);
-        }
-
-        // Log password reset
-        console.log(`Admin password reset: ${email} at ${new Date().toISOString()} from IP: ${req.ip}`);
-
-        res.json({
-            success: true,
-            message: "Password reset successfully. You can now log in with your new password."
-        });
-
-    } catch (error) {
-        if (error instanceof z.ZodError) {
-            return res.status(400).json({ 
-                error: "Validation failed", 
-                details: error.errors 
-            });
-        }
-        
-        console.error("Reset password error:", error);
-        res.status(500).json({ error: "Failed to reset password" });
-    }
-});
 
 export default admin;
