@@ -4,7 +4,6 @@ import jwt from "jsonwebtoken"
 import * as OTPAuth from "otpauth";
 import z from "zod";
 import dotenv from "dotenv";
-import { authUserMiddleware,authSellerMiddleware,authAdminMiddleware } from "../auth/middleware";
 
 dotenv.config();
 
@@ -111,12 +110,27 @@ user.post("/signup", async (req, res) => {
                 created_At: new Date()
             }
         });
+        if (!user) {
+            res.status(400).json({ error: 'Failed to create user' });
+            return;
+        }
 
         const token = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET || "hello");
            if (user.type === "user") {
             console.log("Admin user created:", user.email);
         }
         
+        const session = await prisma.session.create({
+            data: {
+                user_id: user.id,
+                session_date: new Date(),
+            }
+        });
+        if (!session) {
+            res.status(500).json({ error: 'Failed to create session' });
+            return;
+        }
+        console.log("Session created for user:", session);
         res.send({ token, user });
      
     } catch (error) {
@@ -148,4 +162,48 @@ catch (error) {
     res.status(500).json({ error: 'Internal server error' });
 }
 })
+
+
+user.post("/logout", async (req, res) => {
+    try {
+        const token = req.headers.authorization?.split(" ")[1];
+        if (!token) {
+             res.status(401).json({ error: 'Unauthorized' });
+        }
+                // You need to get the session id for the user before updating
+                const session = await prisma.session.findFirst({
+                    where: {
+                        user_id: req.userId,
+                        
+                    },
+                    orderBy: {
+                        session_date: 'desc' // Get the most recent session
+                    }
+                });
+
+                if (!session) {
+                  return   res.status(404).json({ error: 'Active session not found' });
+                }
+
+                const updatedSession = await prisma.session.update({
+                    where: {
+                        id: session.id,
+                        is_active: true // Ensure the session is active
+
+                    },
+                    data: {
+                        is_active: false, // Mark the session as inactive
+                        last_activity: new Date() // Update last activity time
+                    }
+                });
+                if (!updatedSession) {
+                    return res.status(500).json({ error: 'Failed to update session' });
+                }
+                // Invalidate the token by not returning it or by using a blacklist strategy
+                res.json({ message: 'Logged out successfully' });
+    } catch (error) {
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
 export default user;

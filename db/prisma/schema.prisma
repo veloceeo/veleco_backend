@@ -49,6 +49,8 @@ model user {
 model session {
   id Int @default(autoincrement())
   session_date DateTime @default(now())
+  last_activity DateTime @default(now())
+  is_active Boolean @default(true)
   user_id Int 
   user user @relation(fields: [user_id], references: [id])
   @@id([id])

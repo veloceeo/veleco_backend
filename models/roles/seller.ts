@@ -30,6 +30,7 @@ const loginSchema = z.object({
     password: z.string(),
     otp: z.string().optional()
 })
+ 
 
 seller.post("/signup", async (req, res) => {
     const { email, password, name, phone } = signupSchema.parse(req.body)
