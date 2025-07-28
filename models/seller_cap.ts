@@ -1,7 +1,6 @@
 import express from "express"
 import {authSellerMiddleware} from "./auth/middleware"
 import { PrismaClient } from "../db/generated/prisma";
-import e from "express";
 const prisma = new PrismaClient();
 const  route = express.Router();
 
