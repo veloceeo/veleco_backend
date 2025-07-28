@@ -13,6 +13,7 @@ import cartRoutes from "./models/cart";
 import supportRoutes from './support_ticket_routes';
 import seller from "./models/roles/seller.js";
 import admin from "./models/roles/admin.js";
+import sellerCap from "./models/seller_cap.js";
 const app = express();
 
 app.use(express.json());
@@ -30,6 +31,7 @@ app.use('/api/payments', paymentRoutes); // Use the payment routes
 app.use("/api/notifications", notification);
 app.use("/api/settings",settingsManagementRoutes);
 app.use('/api/support', supportRoutes);
+app.use("/seller/seller_cap", sellerCap);
 app.listen(3000, () => {
     console.log("server run at 3000");
 })

@@ -1,4 +1,5 @@
 import { PrismaClient } from '../generated/prisma';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
@@ -8,18 +9,23 @@ async function seedSellerDashboard() {
   try {
     // 1. Create users first (required for seller foreign keys)
     console.log('👥 Creating users...');
+    const hashedPassword1 = await bcrypt.hash('password123', 10);
+    const hashedPassword2 = await bcrypt.hash('password456', 10);
+    const hashedPassword3 = await bcrypt.hash('password789', 10);
+    
     const users = await Promise.all([
       prisma.user.upsert({
         where: { email: 'seller1@example.com' },
         update: {},
         create: {
           email: 'seller1@example.com',
-          password: 'hashedpassword123',
+          password: hashedPassword1,
           name: 'John Seller',
           phone: '+1-555-0101',
-          role: 'seller',
+          type: 'seller',
           latitude: 40.7128,
-          longitude: -74.0060
+          longitude: -74.0060,
+          pincode: '10001'
         }
       }),
       prisma.user.upsert({
@@ -27,12 +33,13 @@ async function seedSellerDashboard() {
         update: {},
         create: {
           email: 'seller2@example.com',
-          password: 'hashedpassword456',
+          password: hashedPassword2,
           name: 'Jane Merchant',
           phone: '+1-555-0102',
-          role: 'seller',
+          type: 'seller',
           latitude: 34.0522,
-          longitude: -118.2437
+          longitude: -118.2437,
+          pincode: '90001'
         }
       }),
       prisma.user.upsert({
@@ -40,60 +47,115 @@ async function seedSellerDashboard() {
         update: {},
         create: {
           email: 'seller3@example.com',
-          password: 'hashedpassword789',
+          password: hashedPassword3,
           name: 'Mike Store',
           phone: '+1-555-0103',
-          role: 'seller',
+          type: 'seller',
           latitude: 41.8781,
-          longitude: -87.6298
+          longitude: -87.6298,
+          pincode: '60601'
         }
       })
     ]);
     
     console.log(`✅ Created ${users.length} users`);
 
-    // 2. Create sellers
-    console.log('📊 Creating sellers...');    const sellers = await Promise.all([
+    // 2. Create sellers (updated schema structure)
+    console.log('📊 Creating sellers...');
+    const sellerHashedPassword1 = await bcrypt.hash('sellerpass123', 10);
+    const sellerHashedPassword2 = await bcrypt.hash('sellerpass456', 10);
+    const sellerHashedPassword3 = await bcrypt.hash('sellerpass789', 10);
+    
+    const sellers = await Promise.all([
       prisma.seller.upsert({
-        where: { user_id: users[0].id },
+        where: { seller_email: 'seller1@example.com' },
         update: {},
         create: {
-          user_id: users[0].id,
-          phone: '+1-555-0101',
+          seller_name: 'John Seller',
+          seller_email: 'seller1@example.com',
+          seller_password: sellerHashedPassword1,
+          seller_phone: '+1-555-0101',
+          seller_address: '123 Main St, New York, NY 10001',
+          seller_latitude: 40.7128,
+          seller_longitude: -74.0060,
           business_license: 'BL-2024-001',
           tax_id: 'TAX-001-2024',
           is_verified: true,
-          verification_date: new Date('2024-01-15T10:30:00Z')
+          verification_date: new Date('2024-01-15T10:30:00Z'),
+          seller_image: 'https://via.placeholder.com/150/0000FF/808080?text=JS'
         }
       }),
       prisma.seller.upsert({
-        where: { user_id: users[1].id },
+        where: { seller_email: 'seller2@example.com' },
         update: {},
         create: {
-          user_id: users[1].id,
-          phone: '+1-555-0102',
+          seller_name: 'Jane Merchant',
+          seller_email: 'seller2@example.com',
+          seller_password: sellerHashedPassword2,
+          seller_phone: '+1-555-0102',
+          seller_address: '456 Market St, Los Angeles, CA 90001',
+          seller_latitude: 34.0522,
+          seller_longitude: -118.2437,
           business_license: 'BL-2024-002',
           tax_id: 'TAX-002-2024',
           is_verified: true,
-          verification_date: new Date('2024-02-20T14:45:00Z')
+          verification_date: new Date('2024-02-20T14:45:00Z'),
+          seller_image: 'https://via.placeholder.com/150/FF0000/FFFFFF?text=JM'
         }
       }),
       prisma.seller.upsert({
-        where: { user_id: users[2].id },
+        where: { seller_email: 'seller3@example.com' },
         update: {},
         create: {
-          user_id: users[2].id,
-          phone: '+1-555-0103',
+          seller_name: 'Mike Store',
+          seller_email: 'seller3@example.com',
+          seller_password: sellerHashedPassword3,
+          seller_phone: '+1-555-0103',
+          seller_address: '789 Commerce Ave, Chicago, IL 60601',
+          seller_latitude: 41.8781,
+          seller_longitude: -87.6298,
           business_license: 'BL-2024-003',
           tax_id: 'TAX-003-2024',
           is_verified: false,
-          verification_date: null
+          verification_date: null,
+          seller_image: 'https://via.placeholder.com/150/00FF00/000000?text=MS'
         }
       })
     ]);    
     console.log(`✅ Created ${sellers.length} sellers`);
 
-    // 3. Create stores (required for analytics and other data)
+    // 3. Create seller caps (NEW - added comprehensive cap data)
+    console.log('🎯 Creating seller caps...');
+    const sellerCaps = await Promise.all([
+      prisma.seller_caps.create({
+        data: {
+          daily_order: '100',
+          tier: 'PREMIUM',
+          subscription_type: 1,
+          seller_id: sellers[0].id
+        }
+      }),
+      prisma.seller_caps.create({
+        data: {
+          daily_order: '50',
+          tier: 'STANDARD',
+          subscription_type: 2,
+          seller_id: sellers[1].id
+        }
+      }),
+      prisma.seller_caps.create({
+        data: {
+          daily_order: '25',
+          tier: 'BASIC',
+          subscription_type: 3,
+          seller_id: sellers[2].id
+        }
+      })
+    ]);
+    
+    console.log(`✅ Created ${sellerCaps.length} seller caps`);
+
+    // 4. Create stores (with proper seller_id relationship)
     console.log('🏪 Creating stores...');
     const stores = await Promise.all([
       prisma.store.upsert({
@@ -108,9 +170,12 @@ async function seedSellerDashboard() {
           adhar_number: 'ADHAR001TECH',
           gst_number: 'GST001TECH',
           store_type: 'retail',
+          seller_id: sellers[0].id,
           user_id: users[0].id,
           latitude: 40.7128,
-          longitude: -74.0060
+          longitude: -74.0060,
+          store_status: 'open',
+          open: 'OPEN'
         }
       }),
       prisma.store.upsert({
@@ -125,9 +190,30 @@ async function seedSellerDashboard() {
           adhar_number: 'ADHAR002GAME',
           gst_number: 'GST002GAME',
           store_type: 'online',
+          seller_id: sellers[1].id,
           user_id: users[1].id,
           latitude: 34.0522,
-          longitude: -118.2437
+          longitude: -118.2437,
+          store_status: 'open',
+          open: 'OPEN'
+        }
+      }),
+      prisma.store.create({
+        data: {
+          name: 'Fashion Boutique',
+          address: '789 Commerce Ave, Chicago, IL 60601',
+          phone: '+1-555-0203',
+          email: 'store3@example.com',
+          pan_number: 'PAN003FASH',
+          adhar_number: 'ADHAR003FASH',
+          gst_number: 'GST003FASH',
+          store_type: 'retail',
+          seller_id: sellers[2].id,
+          user_id: users[2].id,
+          latitude: 41.8781,
+          longitude: -87.6298,
+          store_status: 'open',
+          open: 'OPEN'
         }
       })
     ]);
@@ -218,18 +304,23 @@ async function seedSellerDashboard() {
 
     // 5. Create some test users for reviews and orders
     console.log('👤 Creating customer users...');
+    const customerHashedPassword1 = await bcrypt.hash('customer123', 10);
+    const customerHashedPassword2 = await bcrypt.hash('customer456', 10);
+    const customerHashedPassword3 = await bcrypt.hash('customer789', 10);
+    
     const customerUsers = await Promise.all([
       prisma.user.upsert({
         where: { email: 'customer1@example.com' },
         update: {},
         create: {
           email: 'customer1@example.com',
-          password: 'hashedpassword123',
+          password: customerHashedPassword1,
           name: 'Alice Customer',
           phone: '+1-555-1001',
-          role: 'customer',
+          type: 'customer',
           latitude: 40.7589,
-          longitude: -73.9851
+          longitude: -73.9851,
+          pincode: '10028'
         }
       }),
       prisma.user.upsert({
@@ -237,12 +328,13 @@ async function seedSellerDashboard() {
         update: {},
         create: {
           email: 'customer2@example.com',
-          password: 'hashedpassword456',
+          password: customerHashedPassword2,
           name: 'Bob Buyer',
           phone: '+1-555-1002',
-          role: 'customer',
+          type: 'customer',
           latitude: 34.0522,
-          longitude: -118.2437
+          longitude: -118.2437,
+          pincode: '90002'
         }
       }),
       prisma.user.upsert({
@@ -250,12 +342,13 @@ async function seedSellerDashboard() {
         update: {},
         create: {
           email: 'customer3@example.com',
-          password: 'hashedpassword789',
+          password: customerHashedPassword3,
           name: 'Carol Client',
           phone: '+1-555-1003',
-          role: 'customer',
+          type: 'customer',
           latitude: 41.8781,
-          longitude: -87.6298
+          longitude: -87.6298,
+          pincode: '60602'
         }
       })
     ]);
@@ -763,9 +856,353 @@ async function seedSellerDashboard() {
     ]);    
     console.log(`✅ Created ${balances.length} balance records`);
 
-    console.log('🎉 Seller Dashboard seeding completed successfully!');
+    // 12. Create seller bank accounts
+    console.log('� Creating seller bank accounts...');
+    const bankAccounts = await Promise.all([
+      prisma.seller_bank_account.create({
+        data: {
+          seller_id: sellers[0].id,
+          store_id: stores[0].id,
+          account_holder_name: 'John Seller',
+          bank_name: 'Chase Bank',
+          account_number: '1234567890',
+          ifsc_code: 'CHASUS33',
+          branch_name: 'Manhattan Branch',
+          account_type: 'BUSINESS',
+          is_primary: true,
+          is_verified: true,
+          verification_date: new Date('2024-01-20T00:00:00Z')
+        }
+      }),
+      prisma.seller_bank_account.create({
+        data: {
+          seller_id: sellers[1].id,
+          store_id: stores[1].id,
+          account_holder_name: 'Jane Merchant',
+          bank_name: 'Bank of America',
+          account_number: '9876543210',
+          ifsc_code: 'BOFAUS3N',
+          branch_name: 'Los Angeles Branch',
+          account_type: 'BUSINESS',
+          is_primary: true,
+          is_verified: true,
+          verification_date: new Date('2024-02-25T00:00:00Z')
+        }
+      }),
+      prisma.seller_bank_account.create({
+        data: {
+          seller_id: sellers[2].id,
+          account_holder_name: 'Mike Store',
+          bank_name: 'Wells Fargo',
+          account_number: '1122334455',
+          ifsc_code: 'WFBIUS6S',
+          branch_name: 'Chicago Branch',
+          account_type: 'SAVINGS',
+          is_primary: true,
+          is_verified: false
+        }
+      })
+    ]);
+    
+    console.log(`✅ Created ${bankAccounts.length} bank accounts`);
+
+    // 13. Create seller notification preferences
+    console.log('📢 Creating notification preferences...');
+    const notificationPreferences = await Promise.all([
+      prisma.seller_notification_preferences.create({
+        data: {
+          seller_id: sellers[0].id,
+          store_id: stores[0].id,
+          notify_new_orders: true,
+          notify_order_updates: true,
+          notify_order_cancellations: true,
+          notify_low_stock: true,
+          notify_out_of_stock: true,
+          notify_stock_alerts: true,
+          low_stock_threshold: 5,
+          notify_payment_updates: true,
+          notify_payment_failures: true,
+          notify_settlements: true,
+          notify_withdrawals: true,
+          notify_offer_requests: true,
+          notify_promotion_updates: false,
+          notify_system_updates: true,
+          notify_policy_changes: false,
+          notify_new_reviews: true,
+          notify_review_responses: true,
+          email_notifications: true,
+          sms_notifications: false,
+          push_notifications: true,
+          in_app_notifications: true,
+          quiet_hours_enabled: true,
+          quiet_hours_start: '22:00',
+          quiet_hours_end: '08:00'
+        }
+      }),
+      prisma.seller_notification_preferences.create({
+        data: {
+          seller_id: sellers[1].id,
+          store_id: stores[1].id,
+          notify_new_orders: true,
+          notify_order_updates: true,
+          notify_order_cancellations: true,
+          notify_low_stock: true,
+          notify_out_of_stock: true,
+          notify_stock_alerts: true,
+          low_stock_threshold: 10,
+          notify_payment_updates: true,
+          notify_payment_failures: true,
+          notify_settlements: true,
+          notify_withdrawals: true,
+          notify_offer_requests: false,
+          notify_promotion_updates: true,
+          notify_system_updates: true,
+          notify_policy_changes: true,
+          notify_new_reviews: true,
+          notify_review_responses: true,
+          email_notifications: true,
+          sms_notifications: true,
+          push_notifications: true,
+          in_app_notifications: true,
+          quiet_hours_enabled: false
+        }
+      }),
+      prisma.seller_notification_preferences.create({
+        data: {
+          seller_id: sellers[2].id,
+          notify_new_orders: true,
+          notify_order_updates: false,
+          notify_order_cancellations: true,
+          notify_low_stock: false,
+          notify_out_of_stock: true,
+          notify_stock_alerts: false,
+          low_stock_threshold: 15,
+          notify_payment_updates: false,
+          notify_payment_failures: true,
+          notify_settlements: true,
+          notify_withdrawals: true,
+          notify_offer_requests: false,
+          notify_promotion_updates: false,
+          notify_system_updates: false,
+          notify_policy_changes: false,
+          notify_new_reviews: false,
+          notify_review_responses: false,
+          email_notifications: false,
+          sms_notifications: false,
+          push_notifications: false,
+          in_app_notifications: true,
+          quiet_hours_enabled: false
+        }
+      })
+    ]);
+    
+    console.log(`✅ Created ${notificationPreferences.length} notification preferences`);
+
+    // 14. Create seller notifications
+    console.log('🔔 Creating seller notifications...');
+    const notifications = await Promise.all([
+      prisma.seller_notification.create({
+        data: {
+          seller_id: sellers[0].id,
+          store_id: stores[0].id,
+          category: 'ORDER',
+          type: 'NEW_ORDER',
+          title: 'New Order Received',
+          message: 'You have received a new order worth $299',
+          priority: 'HIGH',
+          status: 'UNREAD',
+          related_order_id: orders[0].id,
+          action_url: '/orders/1',
+          metadata: {
+            order_amount: 299,
+            customer_name: 'Alice Customer'
+          }
+        }
+      }),
+      prisma.seller_notification.create({
+        data: {
+          seller_id: sellers[0].id,
+          store_id: stores[0].id,
+          category: 'INVENTORY',
+          type: 'LOW_STOCK',
+          title: 'Low Stock Alert',
+          message: 'Premium Headphones is running low on stock (3 remaining)',
+          priority: 'MEDIUM',
+          status: 'READ',
+          related_product_id: products[0].id,
+          action_url: '/inventory/1',
+          read_at: new Date('2024-06-24T14:30:00Z'),
+          metadata: {
+            current_stock: 3,
+            threshold: 5
+          }
+        }
+      }),
+      prisma.seller_notification.create({
+        data: {
+          seller_id: sellers[1].id,
+          store_id: stores[1].id,
+          category: 'PAYMENT',
+          type: 'SETTLEMENT_PROCESSED',
+          title: 'Settlement Processed',
+          message: 'Your weekly settlement of $14,277 has been processed',
+          priority: 'MEDIUM',
+          status: 'READ',
+          related_settlement_id: settlements[2].id,
+          action_url: '/settlements/3',
+          read_at: new Date('2024-06-08T15:00:00Z'),
+          metadata: {
+            settlement_amount: 14277,
+            settlement_period: 'Week of June 1-7, 2024'
+          }
+        }
+      }),
+      prisma.seller_notification.create({
+        data: {
+          seller_id: sellers[1].id,
+          category: 'SYSTEM',
+          type: 'SYSTEM_UPDATE',
+          title: 'System Maintenance Scheduled',
+          message: 'Scheduled maintenance on July 30, 2025 from 2:00 AM to 4:00 AM EST',
+          priority: 'LOW',
+          status: 'UNREAD',
+          action_url: '/system-updates',
+          expires_at: new Date('2025-07-30T06:00:00Z'),
+          metadata: {
+            maintenance_start: '2025-07-30T02:00:00Z',
+            maintenance_end: '2025-07-30T04:00:00Z',
+            affected_services: ['Dashboard', 'Reports']
+          }
+        }
+      })
+    ]);
+    
+    console.log(`✅ Created ${notifications.length} notifications`);
+
+    // 15. Create store staff
+    console.log('👨‍💼 Creating store staff...');
+    const storeStaff = await Promise.all([
+      prisma.store_staff.create({
+        data: {
+          store_id: stores[0].id,
+          seller_id: sellers[0].id,
+          staff_name: 'David Manager',
+          staff_email: 'david.manager@techstore.com',
+          staff_phone: '+1-555-2001',
+          role: 'MANAGER',
+          permissions: {
+            can_manage_inventory: true,
+            can_process_orders: true,
+            can_handle_refunds: true,
+            can_view_reports: true,
+            can_manage_staff: false
+          },
+          is_active: true,
+          hired_date: new Date('2024-03-01T00:00:00Z'),
+          created_by: sellers[0].id,
+          last_login: new Date('2024-06-24T09:30:00Z')
+        }
+      }),
+      prisma.store_staff.create({
+        data: {
+          store_id: stores[0].id,
+          seller_id: sellers[0].id,
+          staff_name: 'Sarah Cashier',
+          staff_email: 'sarah.cashier@techstore.com',
+          staff_phone: '+1-555-2002',
+          role: 'CASHIER',
+          permissions: {
+            can_manage_inventory: false,
+            can_process_orders: true,
+            can_handle_refunds: false,
+            can_view_reports: false,
+            can_manage_staff: false
+          },
+          is_active: true,
+          hired_date: new Date('2024-04-15T00:00:00Z'),
+          created_by: sellers[0].id,
+          last_login: new Date('2024-06-24T08:45:00Z')
+        }
+      }),
+      prisma.store_staff.create({
+        data: {
+          store_id: stores[1].id,
+          seller_id: sellers[1].id,
+          staff_name: 'Tom Inventory',
+          staff_email: 'tom.inventory@gamingstore.com',
+          staff_phone: '+1-555-2003',
+          role: 'INVENTORY_MANAGER',
+          permissions: {
+            can_manage_inventory: true,
+            can_process_orders: false,
+            can_handle_refunds: false,
+            can_view_reports: true,
+            can_manage_staff: false
+          },
+          is_active: true,
+          hired_date: new Date('2024-02-10T00:00:00Z'),
+          created_by: sellers[1].id,
+          last_login: new Date('2024-06-23T16:20:00Z')
+        }
+      })
+    ]);
+    
+    console.log(`✅ Created ${storeStaff.length} store staff members`);
+
+    // 16. Create seller sessions
+    console.log('📱 Creating seller sessions...');
+    const sellerSessions = await Promise.all([
+      prisma.seller_session.create({
+        data: {
+          seller_id: sellers[0].id,
+          user_id: users[0].id,
+          device_info: 'Chrome 125.0.0.0 on Windows 11',
+          ip_address: '192.168.1.100',
+          login_time: new Date('2024-06-24T08:00:00Z'),
+          last_activity: new Date('2024-06-24T17:30:00Z'),
+          expires_at: new Date('2024-06-26T08:00:00Z'),
+          is_active: true
+        }
+      }),
+      prisma.seller_session.create({
+        data: {
+          seller_id: sellers[1].id,
+          user_id: users[1].id,
+          device_info: 'Safari 17.5 on macOS Sonoma',
+          ip_address: '10.0.0.50',
+          login_time: new Date('2024-06-24T07:30:00Z'),
+          last_activity: new Date('2024-06-24T18:45:00Z'),
+          expires_at: new Date('2024-06-26T07:30:00Z'),
+          is_active: true
+        }
+      }),
+      prisma.seller_session.create({
+        data: {
+          seller_id: sellers[2].id,
+          user_id: users[2].id,
+          device_info: 'Firefox 127.0 on Ubuntu 22.04',
+          ip_address: '172.16.0.25',
+          login_time: new Date('2024-06-23T14:15:00Z'),
+          last_activity: new Date('2024-06-23T18:00:00Z'),
+          expires_at: new Date('2024-06-25T14:15:00Z'),
+          is_active: false,
+          logout_time: new Date('2024-06-23T18:00:00Z'),
+          logout_reason: 'manual'
+        }
+      })
+    ]);
+    
+    console.log(`✅ Created ${sellerSessions.length} seller sessions`);
+
+    console.log('�🎉 Seller Dashboard seeding completed successfully!');
     console.log('\n📊 Summary:');
+    console.log(`- Users: ${users.length}`);
     console.log(`- Sellers: ${sellers.length}`);
+    console.log(`- Seller Caps: ${sellerCaps.length}`);
+    console.log(`- Stores: ${stores.length}`);
+    console.log(`- Products: ${products.length}`);
+    console.log(`- Customer Users: ${customerUsers.length}`);
+    console.log(`- Orders: ${orders.length}`);
     console.log(`- Analytics Records: ${analyticsData.length}`);
     console.log(`- Sales Reports: ${salesReports.length}`);
     console.log(`- Store Performance: ${storePerformance.length}`);
@@ -776,6 +1213,11 @@ async function seedSellerDashboard() {
     console.log(`- Settlement Details: ${settlementDetails.length}`);
     console.log(`- Payments: ${payments.length}`);
     console.log(`- Balances: ${balances.length}`);
+    console.log(`- Bank Accounts: ${bankAccounts.length}`);
+    console.log(`- Notification Preferences: ${notificationPreferences.length}`);
+    console.log(`- Notifications: ${notifications.length}`);
+    console.log(`- Store Staff: ${storeStaff.length}`);
+    console.log(`- Seller Sessions: ${sellerSessions.length}`);
 
   } catch (error) {
     console.error('❌ Error seeding seller dashboard data:', error);

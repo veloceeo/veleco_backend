@@ -238,6 +238,17 @@ model seller {
   profile_updates       seller_profile_update[]
   sessions              seller_session[]
   support_tickets       support_ticket[]
+  seller_cap  seller_caps[] 
+}
+
+
+model seller_caps{
+  id Int @id @default(autoincrement())
+  daily_order String 
+  tier String 
+  subscription_type Int
+  seller_id  Int 
+  seller_caps  seller @relation(fields: [seller_id] , references: [id])
 }
 
 // Seller Dashboard Analytics - Tracks daily performance metrics

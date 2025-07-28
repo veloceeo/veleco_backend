@@ -1,0 +1,134 @@
+erDiagram
+  user ||--o{ cart : has
+  user ||--o{ orders : places
+  user ||--o{ store_review : writes
+  user ||--o{ session : has
+  user ||--o{ support_ticket : creates
+  user ||--o{ seller_session : has
+
+  admin ||--o{ session : manages
+
+  store ||--o{ cart : has
+  store ||--o{ product : has
+  store ||--o{ orders : receives
+  store ||--o{ seller_analytics : has
+  store ||--o{ sales_report : has
+  store ||--o{ earnings_report : has
+  store ||--o{ store_performance : has
+  store ||--o{ store_hours : has
+  store ||--o{ inventory_alert : has
+  store ||--o{ store_review : has
+  store ||--o{ seller_settlement : has
+  store ||--o{ seller_payment : has
+  store ||--o{ seller_balance : has
+  store ||--o{ seller_notification : has
+  store ||--o{ seller_notification_preferences : has
+  store ||--o{ store_staff : employs
+  store ||--o{ seller_bank_account : has
+  store ||--o{ support_ticket : receives
+
+  cart ||--o{ cart_item : contains
+  cart_item }o--|| product : references
+
+  product ||--o{ cart_item : in
+  product ||--o{ order_item : in
+  product ||--o{ sales_report : best_selling
+  product ||--o{ sales_report : worst_selling
+  product ||--o{ inventory_alert : triggers
+  product ||--o{ seller_notification : notifies
+
+  orders ||--o{ order_item : contains
+  orders ||--o{ store_review : has
+  orders ||--o{ settlement_detail : has
+  orders ||--o{ seller_notification : notifies
+
+  seller ||--o{ store : owns
+  seller ||--o{ seller_analytics : has
+  seller ||--o{ sales_report : has
+  seller ||--o{ earnings_report : has
+  seller ||--o{ seller_settlement : has
+  seller ||--o{ seller_payment : has
+  seller ||--o{ seller_balance : has
+  seller ||--o{ seller_notification : has
+  seller ||--o{ seller_notification_preferences : has
+  seller ||--o{ store_staff : manages
+  seller ||--o{ seller_bank_account : has
+  seller ||--o{ seller_profile_update : updates
+  seller ||--o{ seller_session : has
+  seller ||--o{ support_ticket : handles
+
+  seller_analytics }o--|| seller : belongs_to
+  seller_analytics }o--|| store : belongs_to
+
+  sales_report }o--|| seller : belongs_to
+  sales_report }o--|| store : belongs_to
+  sales_report }o--|| product : best_selling
+  sales_report }o--|| product : worst_selling
+
+  earnings_report }o--|| seller : belongs_to
+  earnings_report }o--|| store : belongs_to
+
+  store_performance }o--|| store : belongs_to
+
+  store_hours }o--|| store : belongs_to
+
+  inventory_alert }o--|| product : belongs_to
+  inventory_alert }o--|| store : belongs_to
+
+  store_review }o--|| user : written_by
+  store_review }o--|| store : for
+  store_review }o--|| orders : for
+
+  seller_settlement }o--|| seller : for
+  seller_settlement }o--|| store : for
+  seller_settlement ||--o{ settlement_detail : has
+  seller_settlement ||--o{ seller_payment : has
+  seller_settlement ||--o{ seller_notification : notifies
+
+  settlement_detail }o--|| seller_settlement : belongs_to
+  settlement_detail }o--|| orders : for
+
+  seller_payment }o--|| seller : for
+  seller_payment }o--|| store : for
+  seller_payment }o--|| seller_settlement : for
+  seller_payment ||--o{ seller_notification : notifies
+
+  seller_balance }o--|| seller : for
+  seller_balance }o--|| store : for
+
+  seller_notification }o--|| seller : for
+  seller_notification }o--|| store : for
+  seller_notification }o--|| orders : for
+  seller_notification }o--|| product : for
+  seller_notification }o--|| seller_payment : for
+  seller_notification }o--|| seller_settlement : for
+  seller_notification ||--o{ notification_delivery : delivers
+
+  seller_notification_preferences }o--|| seller : for
+  seller_notification_preferences }o--|| store : for
+
+  notification_template ||--o{ notification_delivery : uses
+
+  store_staff }o--|| store : for
+  store_staff }o--|| seller : for
+  store_staff }o--|| seller : created_by
+
+  seller_bank_account }o--|| seller : for
+  seller_bank_account }o--|| store : for
+
+  seller_profile_update }o--|| seller : for
+
+  seller_session }o--|| seller : for
+  seller_session }o--|| user : for
+
+  support_ticket }o--|| user : for
+  support_ticket }o--|| seller : for
+  support_ticket }o--|| store : for
+  support_ticket ||--o{ ticket_response : has
+  support_ticket ||--o{ ticket_email_log : has
+
+  ticket_response }o--|| support_ticket : for
+
+  ticket_email_log }o--|| support_ticket : for
+
+  ticket_template ||--o{ support_ticket : uses 

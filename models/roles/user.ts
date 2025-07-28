@@ -182,12 +182,12 @@ user.post("/logout", async (req, res) => {
                 });
 
                 if (!session) {
-                  return   res.status(404).json({ error: 'Active session not found' });
+                     res.status(404).json({ error: 'Active session not found' });
                 }
 
                 const updatedSession = await prisma.session.update({
                     where: {
-                        id: session.id,
+                        id: session?.id,
                         is_active: true // Ensure the session is active
 
                     },
@@ -197,7 +197,7 @@ user.post("/logout", async (req, res) => {
                     }
                 });
                 if (!updatedSession) {
-                    return res.status(500).json({ error: 'Failed to update session' });
+                     res.status(500).json({ error: 'Failed to update session' });
                 }
                 // Invalidate the token by not returning it or by using a blacklist strategy
                 res.json({ message: 'Logged out successfully' });

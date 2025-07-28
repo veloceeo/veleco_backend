@@ -16,6 +16,7 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@mermaid-js/mermaid-cli": "^11.6.0",
     "@prisma/client": "^6.10.1",
     "@prisma/extension-accelerate": "^2.0.1",
     "@types/bcrypt": "^5.0.2",

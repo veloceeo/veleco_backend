@@ -52,7 +52,7 @@ seller.post("/signup", async (req, res) => {
     console.log("Seller user created:", user.seller_email);
     console.log("Seller ID:", user.id);
     console.log(user.created_at)
-    res.send("Seller Created Successfully")
+    res.json({"Seller Created Successfully": user.seller_email, "Seller ID": user.id, "Created At": user.created_at.toISOString()});
 
 })
 
