@@ -1,5 +1,5 @@
 {
-  "name": "e_commerce",
+  "name": "veleco-backend",
   "module": "index.ts",
   "type": "module",
   "private": true,
@@ -9,9 +9,15 @@
   "scripts": {
     "run": "bun run index.ts",
     "db": "bunx prisma migrate dev ",
-    "generate": "bunx prisma generate",
     "seed:support-tickets": "bun run seed_support_tickets.ts",
-    "vercel-build": "prisma generate && tsc"
+    "vercel-build": "node scripts/generate-prisma.js && tsc",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node index.ts",
+    "generate": "prisma generate --schema=./db/prisma/schema.prisma"
+  },
+  "prisma": {
+    "schema": "./db/prisma/schema.prisma"
   },
   "peerDependencies": {
     "typescript": "^5"
@@ -27,6 +33,8 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/multer": "^1.4.13",
     "@types/nodemailer": "^6.4.17",
+    "@vercel/node": "^5.3.7",
+    "@vercel/postgres": "^0.10.0",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.2",
     "brcypt": "^1.0.1",
