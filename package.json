@@ -10,7 +10,8 @@
     "run": "bun run index.ts",
     "db": "bunx prisma migrate dev ",
     "generate": "bunx prisma generate",
-    "seed:support-tickets": "bun run seed_support_tickets.ts"
+    "seed:support-tickets": "bun run seed_support_tickets.ts",
+    "vercel-build": "prisma generate && tsc"
   },
   "peerDependencies": {
     "typescript": "^5"
