@@ -6,11 +6,10 @@
       "use": "@vercel/node",
       "config": {
         "includeFiles": [
-          "dist/**",
           "db/**",
           "models/**",
-          "*.ts",
-          "*.js"
+          "support_ticket_routes.js",
+          "dist/**"
         ]
       }
     }
@@ -20,5 +19,10 @@
       "src": "/(.*)",
       "dest": "api/index.ts"
     }
-  ]
+  ],
+  "functions": {
+    "api/index.ts": {
+      "maxDuration": 30
+    }
+  }
 }
