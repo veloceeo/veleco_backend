@@ -13,7 +13,7 @@
     "run": "bun run index.ts",
     "db": "bunx prisma migrate dev ",
     "seed:support-tickets": "bun run seed_support_tickets.ts",
-    "vercel-build": "node scripts/build.js",
+    "vercel-build": "prisma generate --schema=./db/prisma/schema.prisma && tsc",
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "ts-node index.ts",

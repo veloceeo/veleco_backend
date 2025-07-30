@@ -160,6 +160,14 @@ model product {
   notifications seller_notification[] // Added relation field for notifications
 }
 
+model add_on_value{
+  id Int @id @default(autoincrement())
+  categries_type String
+  range String
+  add_on Int
+  percentage Float
+}
+
 enum CartStatus {
   active
   ordered

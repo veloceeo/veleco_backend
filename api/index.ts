@@ -15,6 +15,7 @@ import settingsManagementRoutes from '../models/settings_management_routes';
 import cartRoutes from '../models/cart';
 import supportRoutes from '../support_ticket_routes';
 import sellerCap from '../models/seller_cap';
+import percentageRouter from '../models/percentage';
 
 const app = express();
 
@@ -37,11 +38,13 @@ app.use("/api/notifications", notification);
 app.use("/api/settings", settingsManagementRoutes);
 app.use('/api/support', supportRoutes);
 app.use("/seller/seller_cap", sellerCap);
+app.use("/api/percentage", percentageRouter);
 
 // Health check endpoint
 app.get('/', (req, res) => {
   res.json({ message: 'Veleco Backend API is running on Vercel!' });
 });
 
-// Export the Express app as a Vercel serverless function
-export default app;
+app.listen(3000, () => {
+  console.log('Server is running on port 3000');
+});
