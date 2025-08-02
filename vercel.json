@@ -113,5 +113,5 @@
   },
   "regions": ["iad1"],
   "framework": null,
-  "buildCommand": "npm run vercel-build"
+"buildCommand": "bun run script/build.js"
 }
