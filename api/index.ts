@@ -45,6 +45,14 @@ app.get('/', (req, res) => {
   res.json({ message: 'Veleco Backend API is running on Vercel!' });
 });
 
-app.listen(3000, () => {
-  console.log('Server is running on port 3000');
-});
+// For local development
+console.log(process.env.NODE_ENV);
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(3000, () => {
+    console.log('Server is running on port 3000');
+
+  });
+}
+
+// Export for Vercel
+export default app;

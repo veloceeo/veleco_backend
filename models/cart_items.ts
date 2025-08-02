@@ -139,18 +139,18 @@ cart_items.post("/add", authMiddleware, async (req, res): Promise<void> => {
     try {
         // Check if req.body exists and is an object
         if (!req.body || typeof req.body !== 'object') {
-            return res.status(400).json({ error: 'Request body is required' });
+             res.status(400).json({ error: 'Request body is required' });
         }
 
         const { product_id, quantity, store_id } = req.body;
         
         if (!product_id || !quantity || !store_id) {
-            return res.status(400).json({ error: 'Product ID, quantity, and store ID are required' });
+             res.status(400).json({ error: 'Product ID, quantity, and store ID are required' });
         }
 
         // Validate data types
         if (isNaN(Number(product_id)) || isNaN(Number(quantity)) || isNaN(Number(store_id))) {
-            return res.status(400).json({ error: 'Product ID, quantity, and store ID must be valid numbers' });
+             res.status(400).json({ error: 'Product ID, quantity, and store ID must be valid numbers' });
         }
 
         if (Number(quantity) < 1) {

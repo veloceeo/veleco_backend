@@ -1,0 +1,52 @@
+# Environment files
+.env*
+!.env.example
+
+# Development files
+*.md
+README.md
+bun.lock
+tsconfig.json
+docker-compose.yml
+
+# Database files (but keep schema for Prisma generation)
+db/generated/
+db/seed/
+db/prisma/migrations/
+
+# Documentation and guides
+IMPLEMENTATION_SUMMARY.md
+SELLER_DASHBOARD_TESTING_GUIDE.md
+SUPPORT_TICKET_API_ENDPOINTS.md
+SUPPORT_TICKET_SYSTEM_GUIDE.md
+PRISMA_MIGRATION_GUIDE.md
+
+# UML and diagrams
+uml.mmd
+
+# Scripts directory
+script/
+
+# Mail templates (keep if needed in production)
+mail.ts
+support_ticket_mail.ts
+
+# Node modules are handled by Vercel
+node_modules/
+
+# TypeScript compiled output (Vercel handles this)
+dist/
+
+# Logs
+*.log
+logs/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db

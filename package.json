@@ -6,18 +6,22 @@
   "devDependencies": {
     "@types/bun": "latest",
     "@types/node": "^20.0.0",
-    "typescript": "^5.0.0",
-    "ts-node": "^10.9.0"
+    "ts-node": "^10.9.0",
+    "typescript": "^5.0.0"
   },
   "scripts": {
     "run": "bun run index.ts",
     "db": "bunx prisma migrate dev ",
     "seed:support-tickets": "bun run seed_support_tickets.ts",
-    "vercel-build": "prisma generate --schema=./db/prisma/schema.prisma && tsc",
+    "vercel-build": "prisma generate --schema=./db/prisma/schema.prisma && prisma migrate deploy --schema=./db/prisma/schema.prisma && tsc",
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "ts-node index.ts",
-    "generate": "prisma generate --schema=./db/prisma/schema.prisma"
+    "generate": "prisma generate --schema=./db/prisma/schema.prisma",
+    "db:deploy": "prisma migrate deploy --schema=./db/prisma/schema.prisma",
+    "db:push": "prisma db push --schema=./db/prisma/schema.prisma",
+    "db:seed": "prisma db seed --schema=./db/prisma/schema.prisma",
+    "postbuild": "prisma generate --schema=./db/prisma/schema.prisma"
   },
   "prisma": {
     "schema": "./db/prisma/schema.prisma"
@@ -35,6 +39,7 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/multer": "^1.4.13",
     "@types/nodemailer": "^6.4.17",
+    "@vercel/edge-config": "^1.4.0",
     "@vercel/node": "^5.3.7",
     "@vercel/postgres": "^0.10.0",
     "bcrypt": "^6.0.0",

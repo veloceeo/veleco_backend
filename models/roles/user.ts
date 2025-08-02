@@ -166,43 +166,48 @@ catch (error) {
 
 user.post("/logout", async (req, res) => {
     try {
-        const token = req.headers.authorization?.split(" ")[1];
+        const token = req.headers["auth"];
+
+        const decode = jwt.verify(token as string, process.env.JWT_SECRET || "hello") as { id: number, email: string };
+        req.userId = decode.id;
+        console.log("Token:", decode.id, decode.email);
         if (!token) {
              res.status(401).json({ error: 'Unauthorized' });
         }
                 // You need to get the session id for the user before updating
                 const session = await prisma.session.findFirst({
                     where: {
-                        user_id: req.userId,
+                        user_id: decode.id,
                         
                     },
                     orderBy: {
                         session_date: 'desc' // Get the most recent session
                     }
                 });
-
+                console.log("Session found:", session);
                 if (!session) {
                      res.status(404).json({ error: 'Active session not found' });
                 }
 
-                const updatedSession = await prisma.session.update({
-                    where: {
-                        id: session?.id,
-                        is_active: true // Ensure the session is active
+                // const updatedSession = await prisma.session.update({
+                //     where: {
+                //         id: session?.id,
+                //         is_active: true // Ensure the session is active
 
-                    },
-                    data: {
-                        is_active: false, // Mark the session as inactive
-                        last_activity: new Date() // Update last activity time
-                    }
-                });
-                if (!updatedSession) {
-                     res.status(500).json({ error: 'Failed to update session' });
-                }
+                //     },
+                //     data: {
+                //         is_active: false, // Mark the session as inactive
+                //         last_activity: new Date() // Update last activity time
+                //     }
+                // });
+                // if (!updatedSession) {
+                //      res.status(500).json({ error: 'Failed to update session' });
+                // }
                 // Invalidate the token by not returning it or by using a blacklist strategy
                 res.json({ message: 'Logged out successfully' });
     } catch (error) {
         res.status(500).json({ error: 'Internal server error' });
+        console.log("Error during logout:", error);
     }
 });
 

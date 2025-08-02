@@ -1,15 +1,119 @@
 {
   "version": 2,
-  "builds": [
+  "functions": {
+    "api/index.ts": {
+      "maxDuration": 30,
+      "memory": 1024
+    }
+  },
+  "rewrites": [
     {
-      "src": "api/index.ts",
-      "use": "@vercel/node@3.1.1"
+      "source": "/",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/health",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/api/user/(.*)",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/api/admin/(.*)",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/api/seller/(.*)",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/api/payments/(.*)",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/api/notifications/(.*)",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/api/settings/(.*)",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/api/support/(.*)",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/api/percentage/(.*)",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/store/(.*)",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/product/(.*)",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/cart/(.*)",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/cart-items/(.*)",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/order/(.*)",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/dashboard/(.*)",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/data/(.*)",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/seller/(.*)",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/api/index"
     }
   ],
-  "routes": [
+  "headers": [
     {
-      "src": "/(.*)",
-      "dest": "api/index.ts"
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization"
+        }
+      ]
     }
-  ]
+  ],
+  "env": {
+    "DATABASE_URL": "@postgres_prisma_url",
+    "NODE_ENV": "production"
+  },
+  "build": {
+    "env": {
+      "DATABASE_URL": "@postgres_prisma_url",
+      "NODE_ENV": "production"
+    }
+  },
+  "regions": ["iad1"],
+  "framework": null,
+  "buildCommand": "npm run vercel-build"
 }

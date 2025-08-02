@@ -15,7 +15,7 @@ import paymentRoutes from './models/payment_routes.ts';
 import notification from './models/settings_management_routes.ts';
 import settingsManagementRoutes from './models/settings_management_routes.ts';
 import cartRoutes from './models/cart.ts';
-import supportRoutes from './support_ticket_routes.ts';
+import supportRoutes from './models/support_ticket_routes.ts';
 
 const app = express();
 
