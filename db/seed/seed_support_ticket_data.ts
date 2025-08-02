@@ -171,7 +171,6 @@ Product Team`,
           password: 'hashedpassword123',
           name: 'Alice Johnson',
           phone: '+1-555-0201',
-          role: 'customer',
           latitude: 40.7589,
           longitude: -73.9851
         }
@@ -184,7 +183,6 @@ Product Team`,
           password: 'hashedpassword456',
           name: 'Bob Wilson',
           phone: '+1-555-0202',
-          role: 'customer',
           latitude: 34.0522,
           longitude: -118.2437
         }
@@ -196,18 +194,42 @@ Product Team`,
           email: 'support@example.com',
           password: 'hashedpassword789',
           name: 'Support Agent',
-          phone: '+1-555-0100',
-          role: 'admin'
+          phone: '+1-555-0100'
         }
       })
     ]);
     
     console.log(`✅ Created ${testUsers.length} test users`);
 
-    // 3. Create stores for testing (if they don't exist)
-    console.log('🏪 Creating test stores...');
+    // 3. Create sellers for testing (if they don't exist)
+    console.log('👤 Creating test sellers...');
     const supportUser = testUsers.find(u => u.email === 'support@example.com');
     if (!supportUser) throw new Error('Support user not found');
+    
+    const testSellers = await Promise.all([
+      prisma.seller.upsert({
+        where: { seller_email: 'techstore@example.com' },
+        update: {},
+        create: {
+          seller_name: 'TechWorld Electronics Owner',
+          seller_email: 'techstore@example.com',
+          seller_password: 'hashedpassword123',
+          seller_phone: '+1-555-0301',
+          seller_address: '123 Technology Ave, Silicon Valley, CA 94000',
+          seller_latitude: 37.4419,
+          seller_longitude: -122.1430,
+          business_license: 'BL123456789',
+          tax_id: 'TAX123456789',
+          is_verified: true,
+          verification_date: new Date()
+        }
+      })
+    ]);
+    
+    console.log(`✅ Created ${testSellers.length} test sellers`);
+
+    // 4. Create stores for testing (if they don't exist)
+    console.log('🏪 Creating test stores...');
     
     const testStores = await Promise.all([
       prisma.store.upsert({
@@ -221,6 +243,7 @@ Product Team`,
           latitude: 37.4419,
           longitude: -122.1430,
           user_id: supportUser.id,
+          seller_id: testSellers[0]!.id,
           pan_number: 'ABCDE1234F',
           adhar_number: '123456789012',
           gst_number: '12ABCDE1234F1Z5'
@@ -230,7 +253,7 @@ Product Team`,
     
     console.log(`✅ Created ${testStores.length} test stores`);
 
-    // 4. Create sample support tickets
+    // 5. Create sample support tickets
     console.log('🎫 Creating sample support tickets...');
     
     // Generate ticket numbers
@@ -363,7 +386,7 @@ Product Team`,
     
     console.log(`✅ Created ${createdTickets.length} sample support tickets`);
 
-    // 5. Create sample ticket responses
+    // 6. Create sample ticket responses
     console.log('💬 Creating sample ticket responses...');
     
     if (createdTickets.length < 5) {
@@ -476,7 +499,7 @@ Product Team`,
     
     console.log(`✅ Created ${createdResponses.length} sample ticket responses`);
 
-    // 6. Create sample email logs
+    // 7. Create sample email logs
     console.log('📧 Creating sample email logs...');
     
     const sampleEmailLogs = [
@@ -572,7 +595,7 @@ Product Team`,
     
     console.log(`✅ Created ${createdEmailLogs.length} sample email logs`);
 
-    // 7. Update ticket last_response_at for tickets with responses
+    // 8. Update ticket last_response_at for tickets with responses
     console.log('🔄 Updating ticket timestamps...');
     
     await prisma.support_ticket.update({
@@ -597,6 +620,7 @@ Product Team`,
     console.log('═══════════════════════════════════════════════════');
     console.log(`📋 Ticket Templates: ${templates.length}`);
     console.log(`👥 Test Users: ${testUsers.length}`);
+    console.log(`👤 Test Sellers: ${testSellers.length}`);
     console.log(`🏪 Test Stores: ${testStores.length}`);
     console.log(`🎫 Support Tickets: ${createdTickets.length}`);
     console.log(`💬 Ticket Responses: ${createdResponses.length}`);

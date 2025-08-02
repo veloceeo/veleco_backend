@@ -2,8 +2,7 @@ import type { VercelResponse,VercelRequest } from '@vercel/node';
 import express from 'express';
 
 // Import your route modules
-import user from './models/roles/user.ts';
-import admin from './models/roles/admin.ts';
+
 import seller from './models/roles/seller';
 import store from './models/store';
 import product from './models/products';
@@ -11,11 +10,13 @@ import order from './models/orders';
 import cartItemsRouter from './models/cart_items';
 import sellerDashboard from './models/seller_dashboard';
 import sellerDashboardExtended from './models/seller_dashboard_extended';
-import paymentRoutes from './models/payment_routes.ts';
-import notification from './models/settings_management_routes.ts';
-import settingsManagementRoutes from './models/settings_management_routes.ts';
-import cartRoutes from './models/cart.ts';
-import supportRoutes from './models/support_ticket_routes.ts';
+import paymentRoutes from './models/payment_routes';
+import cartRoutes from './models/cart';
+import admin from './models/roles/admin';
+import user from './models/roles/user';
+import notification from './models/notification_routes';
+import settingsManagementRoutes from './models/settings_management_routes';
+
 
 const app = express();
 
@@ -58,7 +59,6 @@ app.use("/data", sellerDashboardExtended);
 app.use('/api/payments', paymentRoutes);
 app.use("/api/notifications", notification);
 app.use("/api/settings", settingsManagementRoutes);
-app.use('/api/support', supportRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {

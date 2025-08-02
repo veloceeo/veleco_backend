@@ -208,7 +208,7 @@ export const getSupportTickets = async (req: Request, res: Response) => {
             select: { id: true, name: true, email: true }
           },
           seller: {
-            select: { id: true, phone: true }
+            select: { id: true }
           },
           store: {
             select: { id: true, name: true }
@@ -270,7 +270,7 @@ export const getTicketById = async (req: Request, res: Response) => {
             select: { id: true, name: true, email: true, phone: true }
           },
           seller: {
-            select: { id: true, phone: true }
+            select: { id: true }
           },
           store: {
             select: { id: true, name: true, email: true, phone: true }
@@ -299,7 +299,7 @@ export const getTicketById = async (req: Request, res: Response) => {
             select: { id: true, name: true, email: true, phone: true }
           },
           seller: {
-            select: { id: true, phone: true }
+            select: { id: true }
           },
           store: {
             select: { id: true, name: true, email: true, phone: true }

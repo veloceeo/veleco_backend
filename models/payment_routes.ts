@@ -59,11 +59,7 @@ router.post('/settlements', async (req: Request, res: Response) => {
         status: 'PENDING'
       },
       include: {
-        seller: {
-          include: {
-            user: true
-          }
-        },
+        seller: true,
         store: true,
         settlement_details: true,
         seller_payments: true
@@ -115,11 +111,7 @@ router.get('/settlements', async (req: Request, res: Response) => {
       prisma.seller_settlement.findMany({
         where: whereClause,
         include: {
-          seller: {
-            include: {
-              user: true
-            }
-          },
+          seller: true,
           store: true,
           settlement_details: {
             include: {
@@ -165,11 +157,7 @@ router.get('/settlements/:id', async (req: Request, res: Response) => {
     const settlement = await prisma.seller_settlement.findUnique({
       where: { id },
       include: {
-        seller: {
-          include: {
-            user: true
-          }
-        },
+        seller: true,
         store: true,
         settlement_details: {
           include: {
@@ -228,11 +216,7 @@ router.put('/settlements/:id/status', async (req: Request, res: Response) => {
       where: { id },
       data: updateData,
       include: {
-        seller: {
-          include: {
-            user: true
-          }
-        },
+        seller: true,
         store: true,
         settlement_details: true
       }
@@ -265,17 +249,19 @@ router.delete('/settlements/:id', async (req: Request, res: Response) => {
     });
 
     if (!settlement) {
-      return res.status(404).json({
-        success: false,
-        message: 'Settlement not found'
-      });
+       res.status(404).json({
+         success: false,
+         message: 'Settlement not found'
+       });
+       return;
     }
 
     if (settlement.status === 'COMPLETED') {
-      return res.status(400).json({
-        success: false,
-        message: 'Cannot delete completed settlement'
-      });
+       res.status(400).json({
+         success: false,
+         message: 'Cannot delete completed settlement'
+       });
+       return;
     }
 
     await prisma.seller_settlement.delete({
@@ -475,11 +461,7 @@ router.post('/seller-payments', async (req: Request, res: Response) => {
         status: 'PENDING'
       },
       include: {
-        seller: {
-          include: {
-            user: true
-          }
-        },
+        seller: true,
         store: true,
         settlement: true
       }
@@ -532,11 +514,7 @@ router.get('/seller-payments', async (req: Request, res: Response) => {
       prisma.seller_payment.findMany({
         where: whereClause,
         include: {
-          seller: {
-            include: {
-              user: true
-            }
-          },
+          seller: true,
           store: true,
           settlement: true
         },
@@ -587,11 +565,7 @@ router.get('/seller-payments/:id', async (req: Request, res: Response) => {
     const payment = await prisma.seller_payment.findUnique({
       where: { id },
       include: {
-        seller: {
-          include: {
-            user: true
-          }
-        },
+        seller: true,
         store: true,
         settlement: {
           include: {
@@ -606,10 +580,11 @@ router.get('/seller-payments/:id', async (req: Request, res: Response) => {
     });
 
     if (!payment) {
-      return res.status(404).json({
+       res.status(404).json({
         success: false,
         message: 'Payment not found'
       });
+        return;
     }
 
     res.json({
@@ -652,11 +627,7 @@ router.put('/seller-payments/:id/status', async (req: Request, res: Response) =>
       where: { id },
       data: updateData,
       include: {
-        seller: {
-          include: {
-            user: true
-          }
-        },
+        seller: true,
         store: true,
         settlement: true
       }
@@ -693,10 +664,11 @@ router.post('/seller-payments/bulk-process', async (req: Request, res: Response)
     });
 
     if (payments.length === 0) {
-      return res.status(400).json({
+       res.status(400).json({
         success: false,
         message: 'No pending payments found for the provided IDs'
       });
+      return;
     }
 
     const updatePromises = payments.map((payment) => 
@@ -751,11 +723,7 @@ router.get('/seller-balance/:sellerId', async (req: Request, res: Response) => {
     const balances = await prisma.seller_balance.findMany({
       where: whereClause,
       include: {
-        seller: {
-          include: {
-            user: true
-          }
-        },
+        seller: true,
         store: true
       }
     });
@@ -820,11 +788,7 @@ router.put('/seller-balance', async (req: Request, res: Response) => {
         commission_rate
       },
       include: {
-        seller: {
-          include: {
-            user: true
-          }
-        },
+        seller: true,
         store: true
       }
     });
@@ -852,17 +816,19 @@ router.post('/seller-balance/withdraw', async (req: Request, res: Response) => {
     });
 
     if (!balance) {
-      return res.status(404).json({
-        success: false,
-        message: 'Seller balance not found'
-      });
+       res.status(404).json({
+         success: false,
+         message: 'Seller balance not found'
+       });
+       return;
     }
 
     if (balance.available_amount < amount) {
-      return res.status(400).json({
-        success: false,
-        message: 'Insufficient available balance'
-      });
+       res.status(400).json({
+         success: false,
+         message: 'Insufficient available balance'
+       });
+       return;
     }
 
     const payment = await prisma.seller_payment.create({

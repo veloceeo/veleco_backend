@@ -239,32 +239,38 @@ route.post("/add", async (req, res) => {
     const { categries_type, range } = req.body;
     
     if (!categries_type || range === undefined) {
-      return res.status(400).json({ error: "Missing required fields" });
+       res.status(400).json({ error: "Missing required fields" });
+       return;
     }
+
 
     // Validate category types
     const validCategories = ["human", "pet", "plant", "electronics", "baby-toys", "stationary"];
     if (!validCategories.includes(categries_type)) {
-      return res.status(400).json({ 
+       res.status(400).json({ 
         message:"no add on for this category",
         error: `Invalid category type. Supported categories are: ${validCategories.join(", ")}`
       });
+      return;
     }
 
     // Validate range
     if (range < 0) {
-      return res.status(400).json({ error: "Range must be a non-negative number" });
+       res.status(400).json({ error: "Range must be a non-negative number" });
+       return;
     }
 
     const responseData = calculatePercentageForRange(range, categries_type);
-    return res.json({
+     res.json({
       success: true,
       data: responseData
     });
+    return;
 
   } catch (error) {
     console.error("Error in percentage calculation:", error);
-    return res.status(500).json({ error: "Internal server error" });
+     res.status(500).json({ error: "Internal server error" });
+      return;
   }
 });
 
@@ -331,13 +337,15 @@ route.get("/data", async (req, res) => {
       }
     };
     
-    return res.json({
+     res.json({
       success: true,
       configurations
     });
+    return
   } catch (error) {
     console.error("Error fetching configurations:", error);
-    return res.status(500).json({ error: "Internal server error" });
+     res.status(500).json({ error: "Internal server error" });
+     return;
   }
 });
 
@@ -346,31 +354,36 @@ route.get("/calculate", async (req, res) => {
     const { category, range } = req.query;
     
     if (!category || range === undefined) {
-      return res.status(400).json({ error: "Missing category or range parameters" });
+       res.status(400).json({ error: "Missing category or range parameters" });
+        return;
     }
     
     const numRange = parseInt(range as string);
     if (isNaN(numRange) || numRange < 0) {
-      return res.status(400).json({ error: "Range must be a valid non-negative number" });
+       res.status(400).json({ error: "Range must be a valid non-negative number" });
+        return;
     }
     
     const validCategories = ["human", "pet", "plant", "electronics", "baby-toys", "stationary"];
     if (!validCategories.includes(category as string)) {
-      return res.status(400).json({ 
+       res.status(400).json({ 
         error: "Invalid category type",
         valid_categories: validCategories
       });
+        return;
     }
     
     const result = calculatePercentageForRange(numRange, category as string);
-    return res.json({
+     res.json({
       success: true,
       result
     });
+    return
     
   } catch (error) {
     console.error("Error calculating percentage:", error);
-    return res.status(500).json({ error: "Internal server error" });
+     res.status(500).json({ error: "Internal server error" });
+     return;
   }
 });
 
@@ -379,10 +392,13 @@ route.put("/update", async (req, res) => {
     const { category, range_type, add_on, percentage } = req.body;
     
     if (!category || !range_type || !add_on || !percentage) {
-      return res.status(400).json({ error: "Missing required fields" });
+       res.status(400).json({ error: "Missing required fields" });
+        return;
     }
-    
-    return res.json({
+
+    // Update the configuration logic here
+
+     res.json({
       success: true,
       message: "Configuration updated successfully",
       updated: {
@@ -392,10 +408,12 @@ route.put("/update", async (req, res) => {
         percentage
       }
     });
+    return;
     
   } catch (error) {
     console.error("Error updating configuration:", error);
-    return res.status(500).json({ error: "Internal server error" });
+     res.status(500).json({ error: "Internal server error" });
+     return;
   }
 });
 

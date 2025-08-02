@@ -32,7 +32,7 @@ export const toggleStoreStatus = async (req: Request, res: Response) => {
         updated_At: new Date()
       },
       include: {
-        user: true,
+        seller: true,
         store_hours: true
       }
     });
@@ -40,7 +40,7 @@ export const toggleStoreStatus = async (req: Request, res: Response) => {
     // Create notification for status change
     await prisma.seller_notification.create({
       data: {
-        seller_id: updatedStore.user.id,
+        seller_id: updatedStore.seller.id,
         store_id: storeIdNum,
         category: 'SYSTEM',
         type: 'STORE_STATUS_CHANGED',
@@ -208,7 +208,7 @@ export const updateSellerProfile = async (req: Request, res: Response) => {
     // Get current seller data for tracking changes
     const currentSeller = await prisma.seller.findUnique({
       where: { id: sellerIdNum },
-      include: { user: true, store: true }
+      include: { store: true }
     });
 
     if (!currentSeller) {
@@ -220,24 +220,24 @@ export const updateSellerProfile = async (req: Request, res: Response) => {
 
     // Update user information
     const userUpdates: any = {};
-    if (name && name !== currentSeller.user.name) {
-      userUpdates.name = name;
+    if (name && name !== currentSeller.seller_name) {
+      userUpdates.seller_name = name;
       profileUpdates.push({
         seller_id: sellerIdNum,
         field_name: 'name',
-        old_value: currentSeller.user.name || '',
+        old_value: currentSeller.seller_name || '',
         new_value: name
       });
     }
 
     // Update seller information
     const sellerUpdates: any = {};
-    if (phone && phone !== currentSeller.phone) {
-      sellerUpdates.phone = phone;
+    if (phone && phone !== currentSeller.seller_phone) {
+      sellerUpdates.seller_phone = phone;
       profileUpdates.push({
         seller_id: sellerIdNum,
         field_name: 'phone',
-        old_value: currentSeller.phone,
+        old_value: currentSeller.seller_phone,
         new_value: phone,
         requires_verification: true
       });
@@ -286,19 +286,12 @@ export const updateSellerProfile = async (req: Request, res: Response) => {
 
     // Perform updates in a transaction
     const result = await prisma.$transaction(async (tx) => {
-      // Update user
-      if (Object.keys(userUpdates).length > 0) {
-        await tx.user.update({
-          where: { id: currentSeller.user_id },
-          data: userUpdates
-        });
-      }
-
       // Update seller
-      if (Object.keys(sellerUpdates).length > 0) {
+      if (Object.keys(userUpdates).length > 0 || Object.keys(sellerUpdates).length > 0) {
         await tx.seller.update({
           where: { id: sellerIdNum },
           data: {
+            ...userUpdates,
             ...sellerUpdates,
             updated_at: new Date()
           }
@@ -327,7 +320,6 @@ export const updateSellerProfile = async (req: Request, res: Response) => {
       return await tx.seller.findUnique({
         where: { id: sellerIdNum },
         include: {
-          user: true,
           store: true
         }
       });
@@ -360,15 +352,6 @@ export const getSellerProfile = async (req: Request, res: Response) => {
     const seller = await prisma.seller.findUnique({
       where: { id: sellerIdNum },
       include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            phone: true,
-            created_At: true
-          }
-        },
         store: {
           include: {
             store_hours: true
@@ -451,7 +434,7 @@ export const addBankAccount = async (req: Request, res: Response) => {
       bank_account: bankAccount
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error adding bank account:', error);
     if (error.code === 'P2002') {
       return res.status(400).json({ error: 'This account number already exists for this seller' });
@@ -627,7 +610,7 @@ export const addStaffMember = async (req: Request, res: Response) => {
       staff_member: staffMember
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error adding staff member:', error);
     if (error.code === 'P2002') {
       return res.status(400).json({ error: 'Staff email already exists' });
@@ -658,7 +641,7 @@ export const getStoreStaff = async (req: Request, res: Response) => {
       },
       include: {
         created_by_seller: {
-          select: { id: true, phone: true }
+          select: { id: true, seller_phone: true }
         }
       },
       orderBy: { created_at: 'desc' }
@@ -784,8 +767,7 @@ export const changePassword = async (req: Request, res: Response) => {
 
     // Get seller with user data
     const seller = await prisma.seller.findUnique({
-      where: { id: sellerIdNum },
-      include: { user: true }
+      where: { id: sellerIdNum }
     });
 
     if (!seller) {
@@ -793,7 +775,7 @@ export const changePassword = async (req: Request, res: Response) => {
     }
 
     // Verify current password
-    const isCurrentPasswordValid = await bcrypt.compare(current_password, seller.user.password);
+    const isCurrentPasswordValid = await bcrypt.compare(current_password, seller.seller_password);
     if (!isCurrentPasswordValid) {
       return res.status(400).json({ error: 'Current password is incorrect' });
     }
@@ -802,9 +784,9 @@ export const changePassword = async (req: Request, res: Response) => {
     const hashedNewPassword = await bcrypt.hash(new_password, 10);
 
     // Update password
-    await prisma.user.update({
-      where: { id: seller.user_id },
-      data: { password: hashedNewPassword }
+    await prisma.seller.update({
+      where: { id: sellerIdNum },
+      data: { seller_password: hashedNewPassword }
     });
 
     // Track profile update
@@ -842,8 +824,7 @@ export const createSession = async (req: Request, res: Response) => {
     }
 
     const seller = await prisma.seller.findUnique({
-      where: { id: sellerIdNum },
-      include: { user: true }
+      where: { id: sellerIdNum }
     });
 
     if (!seller) {
@@ -854,7 +835,7 @@ export const createSession = async (req: Request, res: Response) => {
     const session = await prisma.seller_session.create({
       data: {
         seller_id: sellerIdNum,
-        user_id: seller.user_id,
+        user_id: sellerIdNum, // Using seller_id as user_id since seller doesn't have separate user_id
         device_info,
         ip_address,
         expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
@@ -866,7 +847,7 @@ export const createSession = async (req: Request, res: Response) => {
       { 
         sessionId: session.id,
         sellerId: sellerIdNum,
-        userId: seller.user_id
+        userId: sellerIdNum // Using seller_id as user_id
       },
       process.env.JWT_SECRET || 'your-secret-key',
       { expiresIn: '24h' }
@@ -1001,15 +982,6 @@ export const getSettingsOverview = async (req: Request, res: Response) => {
     const seller = await prisma.seller.findUnique({
       where: { id: sellerIdNum },
       include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            phone: true,
-            created_At: true
-          }
-        },
         store: {
           include: {
             store_hours: true
@@ -1041,9 +1013,13 @@ export const getSettingsOverview = async (req: Request, res: Response) => {
     return res.json({
       seller: {
         ...seller,
+        // Create a user-like object from seller data for backward compatibility
         user: {
-          ...seller.user,
-          password: undefined // Don't send password
+          id: seller.id,
+          name: seller.seller_name,
+          email: seller.seller_email,
+          phone: seller.seller_phone,
+          created_At: seller.created_at
         }
       }
     });

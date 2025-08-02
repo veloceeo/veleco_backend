@@ -1,5 +1,5 @@
 import express from 'express';
-import { PrismaClient, Role } from "../db/generated/prisma";
+import { PrismaClient, } from "../db/generated/prisma";
 import { authUserMiddleware } from './auth/middleware';
 import { 
     calculateCartTotal, 

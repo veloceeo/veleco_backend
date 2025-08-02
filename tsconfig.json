@@ -14,10 +14,17 @@
     "resolveJsonModule": true,
     "types": ["node"]
   },
-  "include": [
-    "**/*.ts",
-    "api/**/*.ts"
-  ],
+ "include": [
+  "api/**/*.ts",
+  "models/**/*.ts",
+  "lib/**/*.ts",
+  "utils/**/*.ts",
+  "db/seed/**/*.ts",
+  "index.ts",
+  "mail.ts",
+  "middleware.js",
+  "support_ticket_*.ts"
+],
   "exclude": [
     "node_modules",
     "dist"
