@@ -104,16 +104,14 @@
     }
   ],
   "env": {
-    "DATABASE_URL": "@postgres_prisma_url",
     "NODE_ENV": "production"
   },
   "build": {
     "env": {
-      "DATABASE_URL": "@postgres_prisma_url",
       "NODE_ENV": "production"
     }
   },
   "regions": ["iad1"],
   "framework": null,
-  "buildCommand": "npm run vercel-build"
+"buildCommand": "bun run script/build.js"
 }
