@@ -113,5 +113,5 @@
   },
   "regions": ["iad1"],
   "framework": null,
-"buildCommand": "bun run script/build.js"
+"buildCommand": "bun run script/build.ts"
 }
