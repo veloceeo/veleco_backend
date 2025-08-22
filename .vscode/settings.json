@@ -1,0 +1,4 @@
+{
+  "typescript.preferences.regenerateFilesOnSave": true,
+  "typescript.preferences.includePackageJsonAutoImports": "auto"
+}

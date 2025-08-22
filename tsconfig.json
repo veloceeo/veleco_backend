@@ -15,15 +15,15 @@
     "types": ["node"]
   },
  "include": [
+  "*.ts",
   "api/**/*.ts",
   "models/**/*.ts",
   "lib/**/*.ts",
   "utils/**/*.ts",
   "db/seed/**/*.ts",
-  "index.ts",
   "mail.ts",
-  "middleware.js",
-  "support_ticket_*.ts"
+  "support_ticket_*.ts",
+  "build.ts"
 ],
   "exclude": [
     "node_modules",

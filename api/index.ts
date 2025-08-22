@@ -1,5 +1,11 @@
 import type { VercelResponse, VercelRequest } from '@vercel/node';
 import express from 'express';
+import cors from 'cors';
+
+
+
+// Models 
+
 import user from '../models/roles/user';
 import admin from '../models/roles/admin';
 import seller from '../models/roles/seller';
@@ -21,6 +27,10 @@ const app = express();
 
 // Middleware
 app.use(express.json());
+app.use(cors({
+  origin: '*',
+  methods: 'GET, POST, PUT, DELETE, OPTIONS',
+}));
 
 // Routes
 app.use("/api/user", user);
