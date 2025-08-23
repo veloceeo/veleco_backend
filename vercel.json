@@ -111,8 +111,5 @@
       "NODE_ENV": "production"
     }
   },
-  "regions": ["iad1"],
-  "framework": null,
-  "buildCommand": "npm run vercel-build",
-  "outputDirectory": "dist"
+  "regions": ["iad1"], "framework": null, "buildCommand": "bun run script/build.ts"
 }
