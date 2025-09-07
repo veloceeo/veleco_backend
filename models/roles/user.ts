@@ -23,7 +23,7 @@ let topo = new OTPAuth.TOTP({
     secret: "JBSWY3DPEHPK3PXP"
 });
 
- export const otpSchema = z.object({
+export const otpSchema = z.object({
     otp: z.string()
 })
 const signupSchema = z.object({
@@ -56,24 +56,7 @@ user.get("/generate-otp", (req, res) => {
     res.json({ otp });
 });
 
-user.get("/login", (req, res) => {
-    try {
-        const { otp } = otpSchema.parse(req.headers)
-        if (!otp) {
-            res.send("No otp");
-            return;
-        }
 
-        const verify = topo.validate({ token: otp as string, window: 1 });
-        if (verify === null) {
-            res.send("Invalid otp");
-            return;
-        }
-        res.send("Login successful");
-    } catch (error) {
-        res.status(500).json({ error: 'Internal server error' });
-    }
-});
 
 user.post("/login", async (req, res) => {
     try {
@@ -82,6 +65,7 @@ user.post("/login", async (req, res) => {
         const users = await prisma.user.findFirst({
             where: {
                 email: email,
+                password: password
             }
         });
 
@@ -94,12 +78,13 @@ user.post("/login", async (req, res) => {
         res.send(users);
     } catch (error) {
         res.status(500).json({ error: 'Internal server error' });
+        console.log("Error during login:", error);
     }
 });
 
 user.post("/signup", async (req, res) => {
     try {
-        const { email, password, phone,  name } = signupSchema.parse(req.body);
+        const { email, password, phone, name } = signupSchema.parse(req.body);
 
         const user = await prisma.user.create({
             data: {
@@ -108,6 +93,14 @@ user.post("/signup", async (req, res) => {
                 password,
                 phone,
                 created_At: new Date()
+            },
+            select:{
+                id: true,
+                email: true,
+                name: true,
+                phone: true,
+                created_At: true,
+                type: true
             }
         });
         if (!user) {
@@ -115,11 +108,11 @@ user.post("/signup", async (req, res) => {
             return;
         }
 
-        const token = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET || "hello");
-           if (user.type === "user") {
+        const token = jwt.sign({ id: user.id, email: user.email, type: user.type }, process.env.JWT_SECRET  || "hello");
+        if (user.type === "USER") {
             console.log("Admin user created:", user.email);
         }
-        
+
         const session = await prisma.session.create({
             data: {
                 user_id: user.id,
@@ -132,35 +125,36 @@ user.post("/signup", async (req, res) => {
         }
         console.log("Session created for user:", session);
         res.send({ token, user });
-     
+
     } catch (error) {
+        console.log("Error during signup:", error);
         res.status(400).json({ error: 'Failed to create user' });
     }
 });
 
 // Protected routes (authentication required)
-user.get("/",  (req, res) => {
+user.get("/", (req, res) => {
     res.send({ userId: req.userId });
 });
 
 
 user.put("/forget", async (req, res) => {
-    try{
-    const { email, password } = loginSchema.parse(req.body);
-    const user = await prisma.user.update({
-        where: {
-            email
-        },
-        data: {
-            password: password
-        }
+    try {
+        const { email, password } = loginSchema.parse(req.body);
+        const user = await prisma.user.update({
+            where: {
+                email
+            },
+            data: {
+                password: password
+            }
 
-    })
-    res.json({ message: "update password", user: user.email });
-}
-catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
-}
+        })
+        res.json({ message: "update password", user: user.email });
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Internal server error' });
+    }
 })
 
 
@@ -172,39 +166,40 @@ user.post("/logout", async (req, res) => {
         req.userId = decode.id;
         console.log("Token:", decode.id, decode.email);
         if (!token) {
-             res.status(401).json({ error: 'Unauthorized' });
+            res.status(401).json({ error: 'Unauthorized' });
         }
-                // You need to get the session id for the user before updating
-                const session = await prisma.session.findFirst({
-                    where: {
-                        user_id: decode.id,
-                        
-                    },
-                    orderBy: {
-                        session_date: 'desc' // Get the most recent session
-                    }
-                });
-                console.log("Session found:", session);
-                if (!session) {
-                     res.status(404).json({ error: 'Active session not found' });
-                }
+        // You need to get the session id for the user before updating
+        const session = await prisma.session.findFirst({
+            where: {
+                user_id: decode.id,
 
-                // const updatedSession = await prisma.session.update({
-                //     where: {
-                //         id: session?.id,
-                //         is_active: true // Ensure the session is active
+            },
+            orderBy: {
+                session_date: 'desc' // Get the most recent session
+            }
+        });
+        console.log("Session found:", session);
+        if (!session) {
+            res.status(404).json({ error: 'Active session not found' });
+        }
 
-                //     },
-                //     data: {
-                //         is_active: false, // Mark the session as inactive
-                //         last_activity: new Date() // Update last activity time
-                //     }
-                // });
-                // if (!updatedSession) {
-                //      res.status(500).json({ error: 'Failed to update session' });
-                // }
-                // Invalidate the token by not returning it or by using a blacklist strategy
-                res.json({ message: 'Logged out successfully' });
+        // const updatedSession = await prisma.session.update({
+        //     where: {
+        //         id: session?.id,
+        //         is_active: true // Ensure the session is active
+
+        //     },
+        //     data: {
+        //         is_active: false, // Mark the session as inactive
+        //         last_activity: new Date() // Update last activity time
+        //     }
+        // });
+        // if (!updatedSession) {
+        //      res.status(500).json({ error: 'Failed to update session' });
+        // }
+        // Invalidate the token by not returning it or
+        //  by using a blacklist strategy
+        res.json({ message: 'Logged out successfully' });
     } catch (error) {
         res.status(500).json({ error: 'Internal server error' });
         console.log("Error during logout:", error);

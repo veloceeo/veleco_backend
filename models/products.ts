@@ -1,13 +1,11 @@
 import express from "express";
 import cloudinary, { UploadStream } from "cloudinary";
 import { PrismaClient } from "../db/generated/prisma";
-import { authMiddleware } from "../models/auth/middleware";
-import multer from "multer";
+import { authUserMiddleware } from "./auth/middleware";
 
 const product = express.Router();
 const prisma = new PrismaClient()
-
-product.get("/",authMiddleware, async (req, res) => {
+product.get("/",authUserMiddleware, async (req, res) => {
     const product = await prisma.product.findMany();
     if (!product || product.length === 0) {
          res.status(404).json({ error: "No products found" });
@@ -17,7 +15,7 @@ product.get("/",authMiddleware, async (req, res) => {
 })
 //add product
 
-product.post("/add", authMiddleware, async (req, res) => {
+product.post("/add", authUserMiddleware, async (req, res) => {
     try {
         const { product_name, price, product_img, quantity, category, stock } = req.body;
 
@@ -58,7 +56,7 @@ product.post("/add", authMiddleware, async (req, res) => {
 
 
 //product search and stock 
-product.post("/quantity/:name",  authMiddleware ,async (req, res) => {
+product.post("/quantity/:name",  authUserMiddleware ,async (req, res) => {
     try {
         const { name } = req.params;
         const product = await prisma.product.findFirst({
@@ -115,7 +113,7 @@ product.get("/search/:name", async (req, res) => {
     }
 })
 
-product.delete("/:name", authMiddleware, async (req, res) => {
+product.delete("/:name", authUserMiddleware, async (req, res) => {
     try {
         const {name} = req.params as { name: string };
         if(!name) {
