@@ -87,7 +87,7 @@ app.use('/api/seller_cap', sellerCap);
 app.use('/api/percentage', percentageRouter);
 
 // Health check endpoint
-app.get('/', (req, res) => {
+app.get('/hello', (req, res) => {
   res.json({ message: 'Veleco Backend API is running on Vercel!' });
 });
 
