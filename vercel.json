@@ -1,7 +1,7 @@
 {
   "version": 2,
   "functions": {
-    "dist/index.js": {
+    "api/index.js": {
       "maxDuration": 30,
       "memory": 1024
     }
@@ -9,7 +9,7 @@
   "rewrites": [
     {
       "source": "/(.*)",
-      "destination": "/dist/index.js"
+      "destination": "/api/index"
     },
     {
       "source": "/health",
@@ -78,10 +78,6 @@
     {
       "source": "/seller/(.*)",
       "destination": "/api/index"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/api/index"
     }
   ],
   "headers": [
@@ -110,8 +106,5 @@
     "env": {
       "NODE_ENV": "production"
     }
-  },
-  "regions": ["iad1"],
-  "framework": null,
-"buildCommand": "bun run script/build.ts"
+  }
 }
