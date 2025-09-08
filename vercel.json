@@ -10,74 +10,6 @@
     {
       "source": "/(.*)",
       "destination": "/api/index"
-    },
-    {
-      "source": "/health",
-      "destination": "/api/index"
-    },
-    {
-      "source": "/api/user/(.*)",
-      "destination": "/api/index"
-    },
-    {
-      "source": "/api/admin/(.*)",
-      "destination": "/api/index"
-    },
-    {
-      "source": "/api/seller/(.*)",
-      "destination": "/api/index"
-    },
-    {
-      "source": "/api/payments/(.*)",
-      "destination": "/api/index"
-    },
-    {
-      "source": "/api/notifications/(.*)",
-      "destination": "/api/index"
-    },
-    {
-      "source": "/api/settings/(.*)",
-      "destination": "/api/index"
-    },
-    {
-      "source": "/api/support/(.*)",
-      "destination": "/api/index"
-    },
-    {
-      "source": "/api/percentage/(.*)",
-      "destination": "/api/index"
-    },
-    {
-      "source": "/store/(.*)",
-      "destination": "/api/index"
-    },
-    {
-      "source": "/product/(.*)",
-      "destination": "/api/index"
-    },
-    {
-      "source": "/cart/(.*)",
-      "destination": "/api/index"
-    },
-    {
-      "source": "/cart-items/(.*)",
-      "destination": "/api/index"
-    },
-    {
-      "source": "/order/(.*)",
-      "destination": "/api/index"
-    },
-    {
-      "source": "/dashboard/(.*)",
-      "destination": "/api/index"
-    },
-    {
-      "source": "/data/(.*)",
-      "destination": "/api/index"
-    },
-    {
-      "source": "/seller/(.*)",
-      "destination": "/api/index"
     }
   ],
   "headers": [
@@ -108,3 +40,4 @@
     }
   }
 }
+
