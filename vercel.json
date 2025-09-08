@@ -1,7 +1,8 @@
 {
   "version": 2,
   "functions": {
-    "api/index.js": {
+    "api/index.ts": {
+      "runtime": "@vercel/node@2",
       "maxDuration": 30,
       "memory": 1024
     }
@@ -33,11 +34,5 @@
   ],
   "env": {
     "NODE_ENV": "production"
-  },
-  "build": {
-    "env": {
-      "NODE_ENV": "production"
-    }
   }
 }
-
