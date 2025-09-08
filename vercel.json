@@ -1,15 +1,15 @@
 {
   "version": 2,
   "functions": {
-    "api/index.ts": {
+    "dist/index.js": {
       "maxDuration": 30,
       "memory": 1024
     }
   },
   "rewrites": [
     {
-      "source": "/",
-      "destination": "/api/index"
+      "source": "/(.*)",
+      "destination": "/dist/index.js"
     },
     {
       "source": "/health",
