@@ -10,19 +10,13 @@
     "typescript": "^5.9.2"
   },
   "scripts": {
-    "run": "bun run index.ts",
-    "db": "bunx prisma migrate dev ",
-    "seed:support-tickets": "bun run seed_support_tickets.ts",
-    "vercel-build": "prisma generate --schema=./db/prisma/schema.prisma && prisma migrate deploy --schema=./db/prisma/schema.prisma && tsc",
-    "build": "tsc",
-    "start": "node dist/index.js",
-    "dev": "ts-node index.ts",
-    "generate": "prisma generate --schema=./db/prisma/schema.prisma",
-    "db:deploy": "prisma migrate deploy --schema=./db/prisma/schema.prisma",
-    "db:push": "prisma db push --schema=./db/prisma/schema.prisma",
-    "db:seed": "prisma db seed --schema=./db/prisma/schema.prisma",
-    "postbuild": "prisma generate --schema=./db/prisma/schema.prisma"
-  },
+  "dev": "ts-node api/index.ts",
+  "db": "bunx prisma migrate dev",
+  "generate": "prisma generate --schema=./db/prisma/schema.prisma",
+  "db:deploy": "prisma migrate deploy --schema=./db/prisma/schema.prisma",
+  "db:push": "prisma db push --schema=./db/prisma/schema.prisma",
+  "db:seed": "prisma db seed --schema=./db/prisma/schema.prisma"
+},
   "prisma": {
     "schema": "./db/prisma/schema.prisma"
   },
