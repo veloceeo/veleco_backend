@@ -14,15 +14,7 @@
     "types": ["node", "express"]
   },
   "include": [
-    "*.ts",
-    "api/**/*.ts",
-    "models/**/*.ts",
-    "lib/**/*.ts",
-    "utils/**/*.ts",
-    "db/**/*.ts",
-    "mail.ts",
-    "support_ticket_*.ts",
-    "build.ts"
+    "./**/*.ts"
   ],
   "exclude": ["node_modules", "dist"]
 }
