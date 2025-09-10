@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "module": "CommonJS",     // 👈 change this
+    "module": "CommonJS",
     "moduleResolution": "node",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
@@ -11,7 +11,7 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "types": ["node"]
+    "types": ["node", "express"]
   },
   "include": [
     "*.ts",
@@ -19,7 +19,7 @@
     "models/**/*.ts",
     "lib/**/*.ts",
     "utils/**/*.ts",
-    "db/seed/**/*.ts",
+    "db/**/*.ts",
     "mail.ts",
     "support_ticket_*.ts",
     "build.ts"
