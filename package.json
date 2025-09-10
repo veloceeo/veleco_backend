@@ -1,11 +1,12 @@
 {
   "name": "veleco-backend",
-  "type": "commonjs",
+  "version": "1.0.0",
   "private": true,
+  "type": "commonjs",
   "scripts": {
     "dev": "ts-node api/index.ts",
-    "build": "tsc",                     
-    "start": "node dist/api/index.js",  
+    "build": "prisma generate && tsc",         
+    "start": "node dist/api/index.js",
     "db": "bunx prisma migrate dev",
     "generate": "prisma generate --schema=./db/prisma/schema.prisma",
     "db:deploy": "prisma migrate deploy --schema=./db/prisma/schema.prisma",
@@ -29,6 +30,11 @@
   "devDependencies": {
     "typescript": "^5.9.2",
     "ts-node": "^10.9.2",
-    "@types/node": "^20.19.13"
+    "@types/node": "^20.19.13",
+    "@types/express": "^5.0.0",
+    "@types/cors": "^2.8.17",
+    "@types/jsonwebtoken": "^9.0.5",
+    "@types/multer": "^1.4.12",
+    "@types/bcrypt": "^5.0.2"
   }
 }
