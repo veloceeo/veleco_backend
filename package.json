@@ -5,8 +5,8 @@
   "scripts": {
   "dev": "bun run index.ts",
   "build": "prisma generate --schema=./db/prisma/schema.prisma && tsc -p tsconfig.json",
-  "vercel-build": "npm run build", 
- "start": "node dist/index.js",
+  "vercel-build": "bun run build",
+  "start": "node dist/index.js",
   "db": "bunx prisma migrate dev --schema=./db/prisma/schema.prisma",
   "generate": "prisma generate --schema=./db/prisma/schema.prisma",
   "db:deploy": "prisma migrate deploy --schema=./db/prisma/schema.prisma",
