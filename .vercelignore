@@ -6,7 +6,6 @@
 *.md
 README.md
 bun.lock
-tsconfig.json
 docker-compose.yml
 
 # Database files (but keep schema for Prisma generation)
