@@ -28,9 +28,10 @@
     "@vercel/edge-config": "^1.4.0"
   },
   "devDependencies": {
-    "typescript": "^5.9.2",
-    "ts-node": "^10.9.2",
-    "@types/node": "^20.19.13"
+  "typescript": "^5.9.2",
+  "ts-node": "^10.9.2",
+  "@types/node": "^20.19.13",
+  "@types/express": "^4.17.21"
   },
   "prisma": {
     "schema": "./db/prisma/schema.prisma"
