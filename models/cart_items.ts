@@ -139,30 +139,34 @@ cart_items.post("/add", authMiddleware, async (req, res): Promise<void> => {
     try {
         // Check if req.body exists and is an object
         if (!req.body || typeof req.body !== 'object') {
-            return res.status(400).json({ error: 'Request body is required' });
+             res.status(400).json({ error: 'Request body is required' });
         }
 
         const { product_id, quantity, store_id } = req.body;
         
         if (!product_id || !quantity || !store_id) {
-            return res.status(400).json({ error: 'Product ID, quantity, and store ID are required' });
+             res.status(400).json({ error: 'Product ID, quantity, and store ID are required' });
         }
 
         // Validate data types
         if (isNaN(Number(product_id)) || isNaN(Number(quantity)) || isNaN(Number(store_id))) {
-            return res.status(400).json({ error: 'Product ID, quantity, and store ID must be valid numbers' });
+             res.status(400).json({ error: 'Product ID, quantity, and store ID must be valid numbers' });
         }
 
         if (Number(quantity) < 1) {
-            return res.status(400).json({ error: 'Quantity must be at least 1' });
-        }        const cart = await prisma.cart.findFirst({
+             res.status(400).json({ error: 'Quantity must be at least 1' });
+             return;
+        }
+        const cart = await prisma.cart.findFirst({
             where: {
                 user_id: req.userId,
                 store_id: Number(store_id),
                 status: 'active'
             }
-        });        if (!cart) {
-            return res.status(404).json({ error: 'Active cart not found for this store' });
+        });
+        if (!cart) {
+             res.status(404).json({ error: 'Active cart not found for this store' });
+             return;
         }
 
         const product = await prisma.product.findUnique({
@@ -170,11 +174,12 @@ cart_items.post("/add", authMiddleware, async (req, res): Promise<void> => {
         });
 
         if (!product) {
-            return res.status(404).json({ error: 'Product not found' });
+             res.status(404).json({ error: 'Product not found' });
+             return;
         }
 
         if (product.stock < quantity) {
-            return res.status(400).json({ error: `Insufficient stock. Only ${product.stock} items available` });
+             res.status(400).json({ error: `Insufficient stock. Only ${product.stock} items available` });
         }
 
         // Check if item already exists in cart
@@ -199,7 +204,7 @@ cart_items.post("/add", authMiddleware, async (req, res): Promise<void> => {
             // Create new cart item
             data = await prisma.cart_item.create({
                 data: {
-                    cart_id: cart.id,
+                    cart_id: cart?.id,
                     product_id: Number(product_id),
                     quantity: Number(quantity),
                     price_at_time: product.price,
@@ -211,13 +216,14 @@ cart_items.post("/add", authMiddleware, async (req, res): Promise<void> => {
 
         // Update cart total
         const cartItems = await prisma.cart_item.findMany({
-            where: { cart_id: cart.id }
+            where: { cart_id: cart?.id }
         });
         const totalAmount = cartItems.reduce((sum, item) => sum + (item.price_at_time * item.quantity), 0);
         await prisma.cart.update({
-            where: { id: cart.id },
+            where: { id: cart?.id },
             data: { total_amount: totalAmount }
-        });        res.json({
+        });
+        res.json({
             message: "Item added to cart successfully",
             data
         });
@@ -235,7 +241,8 @@ cart_items.put("/:id", authMiddleware, async (req, res) => {
         const { quantity } = req.body;
 
         if (!quantity || quantity < 1) {
-            return res.status(400).json({ error: 'Valid quantity (minimum 1) is required' });
+             res.status(400).json({ error: 'Valid quantity (minimum 1) is required' });
+             return;
         }
 
         // Get cart item with related data
@@ -255,19 +262,22 @@ cart_items.put("/:id", authMiddleware, async (req, res) => {
         });
 
         if (!cartItem) {
-            return res.status(404).json({ error: 'Cart item not found' });
+            res.status(404).json({ error: 'Cart item not found' });
+            return;
         }
 
         // Check authorization
         if (cartItem.cart.user_id !== req.userId) {
-            return res.status(403).json({ error: 'Unauthorized access' });
+            res.status(403).json({ error: 'Unauthorized access' });
+            return;
         }
 
         // Check stock availability
         if (cartItem.product.stock < quantity) {
-            return res.status(400).json({ 
+             res.status(400).json({ 
                 error: `Insufficient stock. Only ${cartItem.product.stock} items available` 
             });
+            return;
         }
 
         // Update cart item
@@ -325,12 +335,14 @@ cart_items.delete("/:id", authMiddleware, async (req, res) => {
         });
 
         if (!cartItem) {
-            return res.status(404).json({ error: 'Cart item not found' });
+             res.status(404).json({ error: 'Cart item not found' });
+                return;
         }
 
         // Check authorization
         if (cartItem.cart.user_id !== req.userId) {
-            return res.status(403).json({ error: 'Unauthorized access' });
+             res.status(403).json({ error: 'Unauthorized access' });
+             return;
         }
 
         // Delete cart item
@@ -374,7 +386,8 @@ cart_items.delete("/clear/all", authMiddleware, async (req, res) => {
         });
 
         if (userCarts.length === 0) {
-            return res.status(404).json({ error: 'No active carts found' });
+             res.status(404).json({ error: 'No active carts found' });
+                return;
         }
 
         let totalItemsRemoved = 0;
@@ -423,7 +436,8 @@ cart_items.delete("/clear/:cartId", authMiddleware, async (req, res) => {
         });
 
         if (!cart) {
-            return res.status(404).json({ error: 'Cart not found or unauthorized' });
+            res.status(404).json({ error: 'Cart not found or unauthorized' });
+            return;
         }
 
         // Count items before deletion

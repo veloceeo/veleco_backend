@@ -33,6 +33,7 @@ const loginSchema = z.object({
  
 
 seller.post("/signup", async (req, res) => {
+    try{
     const { email, password, name, phone } = signupSchema.parse(req.body)
     if (!email || !password || !name || !phone) {
         res.send("Field Missing")
@@ -44,6 +45,12 @@ seller.post("/signup", async (req, res) => {
             seller_name: name,
             seller_phone: phone,
             created_at: new Date()
+        },
+        select:{
+            id:true,
+            seller_email:true,
+            seller_name:true,
+            type:true
         }
     })
     const token = jwt.sign({ id: user.id, email: user.seller_email, type: "seller" }, process.env.JWT_SECRET || "hello");
@@ -51,9 +58,12 @@ seller.post("/signup", async (req, res) => {
     console.log(token);
     console.log("Seller user created:", user.seller_email);
     console.log("Seller ID:", user.id);
-    console.log(user.created_at)
-    res.json({"Seller Created Successfully": user.seller_email, "Seller ID": user.id, "Created At": user.created_at.toISOString()});
-
+            res.json({"Seller Created Successfully": user.seller_email, "Seller ID": user.id});
+            }
+    catch(e){
+        console.log(e);
+        res.send("Error creating seller");
+    }
 })
 
 seller.get("/generate-otp", (req, res) => {
@@ -61,17 +71,13 @@ seller.get("/generate-otp", (req, res) => {
     res.json({ otp: otpCode });
 });
 
-seller.post("/login",authSellerMiddleware, async (req, res) => {
+seller.post("/login", async (req, res) => {
 
     const { email, password } = loginSchema.parse(req.body);
     if (!email || !password) {
         res.send("required field")
     }
-    const { otp } = otpSchema.parse(req.headers);
-    if (!otp) {
-        res.status(400).send("OTP is required");
-        return;
-    }
+    
     console.log("userId",req.userId);
     const user = await prisma.seller.findFirst({
         where: {
@@ -79,6 +85,7 @@ seller.post("/login",authSellerMiddleware, async (req, res) => {
             seller_password: password
         }
     })
+      res.send(user)
     if (user) {
         const timeResult = await prisma.seller.findUnique({
             where: {
@@ -88,6 +95,8 @@ seller.post("/login",authSellerMiddleware, async (req, res) => {
                 created_at: true
             }
         });
+       
+
         if (timeResult && timeResult.created_at < new Date())
                 console.log(timeResult.created_at.toISOString().slice(0, 10))
             console.log("Current Date:", new Date().toISOString().slice(0, 10));

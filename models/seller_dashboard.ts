@@ -22,7 +22,7 @@ sellerDashboard.post("/seller/create", authSellerMiddleware, async (req, res): P
 
         // Check if seller already exists for this user
         const existingSeller = await prisma.seller.findUnique({
-            where: { user_id: req.userId as number }
+            where: { id: req.userId as number }
         });
 
         if (existingSeller) {
@@ -32,19 +32,12 @@ sellerDashboard.post("/seller/create", authSellerMiddleware, async (req, res): P
 
         const seller = await prisma.seller.create({
             data: {
-                user_id: req.userId as number,
-                phone,
+                seller_name: req.body.seller_name || 'New Seller',
+                seller_email: req.body.seller_email || 'seller@example.com',
+                seller_password: req.body.seller_password || 'defaultpassword',
+                seller_phone: phone,
                 business_license,
                 tax_id
-            },
-            include: {
-                user: {
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true
-                    }
-                }
             }
         });
 
@@ -62,16 +55,8 @@ sellerDashboard.post("/seller/create", authSellerMiddleware, async (req, res): P
 sellerDashboard.get("/seller/profile", authSellerMiddleware, async (req, res): Promise<void> => {
     try {
         const seller = await prisma.seller.findUnique({
-            where: { user_id: req.userId as number },
+            where: { id: req.userId as number },
             include: {
-                user: {
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true,
-                        phone: true
-                    }
-                },
                 store: {
                     select: {
                         id: true,
@@ -103,24 +88,15 @@ sellerDashboard.get("/seller/profile", authSellerMiddleware, async (req, res): P
 // Update seller profile
 sellerDashboard.put("/seller/update", authSellerMiddleware, async (req, res): Promise<void> => {
     try {
-        const { phone, business_license, tax_id, is_verified } = req.body;
+        const { seller_phone, business_license, tax_id, is_verified } = req.body;
 
         const seller = await prisma.seller.update({
-            where: { user_id: req.userId as number },
+            where: { id: req.userId as number },
             data: {
-                ...(phone && { phone }),
+                ...(seller_phone && { seller_phone }),
                 ...(business_license && { business_license }),
                 ...(tax_id && { tax_id }),
                 ...(typeof is_verified === 'boolean' && { is_verified, verification_date: is_verified ? new Date() : null })
-            },
-            include: {
-                user: {
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true
-                    }
-                }
             }
         });
 
@@ -143,7 +119,7 @@ sellerDashboard.get("/analytics/dashboard", authSellerMiddleware, async (req, re
 
         // Verify seller owns the store
         const seller = await prisma.seller.findUnique({
-            where: { user_id: req.userId as number },
+            where: { id: req.userId as number },
             include: {
                 store: true
             }
@@ -158,8 +134,10 @@ sellerDashboard.get("/analytics/dashboard", authSellerMiddleware, async (req, re
         if (!storeId) {
             res.status(400).json({ error: 'Store ID is required' });
             return;
-``        }        // Check if seller owns this store
-        const ownsStore = seller.store.some(s => s.id === storeId);
+        }
+
+        // Check if seller owns this store
+        const ownsStore = seller.store.some((s: any) => s.id === storeId);
         if (!ownsStore) {
             res.status(403).json({ error: 'Access denied: You do not own this store' });
             return;
@@ -247,7 +225,7 @@ sellerDashboard.get("/analytics/range", authSellerMiddleware, async (req, res): 
         const { store_id, start_date, end_date } = req.query;
 
         const seller = await prisma.seller.findUnique({
-            where: { user_id: req.userId as number },
+            where: { id: req.userId as number },
             include: { store: true }
         });
 
@@ -262,7 +240,7 @@ sellerDashboard.get("/analytics/range", authSellerMiddleware, async (req, res): 
             return;
         }
 
-        const ownsStore = seller.store.some(s => s.id === storeId);
+        const ownsStore = seller.store.some((s: any) => s.id === storeId);
         if (!ownsStore) {
             res.status(403).json({ error: 'Access denied: You do not own this store' });
             return;
@@ -324,7 +302,7 @@ sellerDashboard.post("/reports/generate", authSellerMiddleware, async (req, res)
         const { store_id, report_type, start_date, end_date, custom_data } = req.body;
 
         const seller = await prisma.seller.findUnique({
-            where: { user_id: req.userId as number },
+            where: { id: req.userId as number },
             include: { store: true }
         });
 
@@ -339,7 +317,7 @@ sellerDashboard.post("/reports/generate", authSellerMiddleware, async (req, res)
             return;
         }
 
-        const ownsStore = seller.store.some(s => s.id === storeId);
+        const ownsStore = seller.store.some((s: any) => s.id === storeId);
         if (!ownsStore) {
             res.status(403).json({ error: 'Access denied: You do not own this store' });
             return;
@@ -486,7 +464,7 @@ sellerDashboard.get("/reports", authSellerMiddleware, async (req, res): Promise<
         const { store_id, report_type, limit = '10' } = req.query;
 
         const seller = await prisma.seller.findUnique({
-            where: { user_id: req.userId as number },
+            where: { id: req.userId as number },
             include: { store: true }
         });
 
@@ -501,7 +479,7 @@ sellerDashboard.get("/reports", authSellerMiddleware, async (req, res): Promise<
             return;
         }
 
-        const ownsStore = seller.store.some(s => s.id === storeId);
+        const ownsStore = seller.store.some((s: any) => s.id === storeId);
         if (!ownsStore) {
             res.status(403).json({ error: 'Access denied: You do not own this store' });
             return;
@@ -559,7 +537,7 @@ sellerDashboard.get("/performance/:store_id", authSellerMiddleware, async (req, 
         const storeId = parseInt(store_id);
 
         const seller = await prisma.seller.findUnique({
-            where: { user_id: req.userId as number },
+            where: { id: req.userId as number },
             include: { store: true }
         });
 
@@ -568,7 +546,7 @@ sellerDashboard.get("/performance/:store_id", authSellerMiddleware, async (req, 
             return;
         }
 
-        const ownsStore = seller.store.some(s => s.id === storeId);
+        const ownsStore = seller.store.some((s: any) => s.id === storeId);
         if (!ownsStore) {
             res.status(403).json({ error: 'Access denied: You do not own this store' });
             return;
@@ -637,7 +615,7 @@ sellerDashboard.put("/performance/:store_id", authSellerMiddleware, async (req, 
         const updateData = req.body;
 
         const seller = await prisma.seller.findUnique({
-            where: { user_id: req.userId as number },
+            where: { id: req.userId as number },
             include: { store: true }
         });
 
@@ -646,7 +624,7 @@ sellerDashboard.put("/performance/:store_id", authSellerMiddleware, async (req, 
             return;
         }
 
-        const ownsStore = seller.store.some(s => s.id === storeId);
+        const ownsStore = seller.store.some((s: any) => s.id === storeId);
         if (!ownsStore) {
             res.status(403).json({ error: 'Access denied: You do not own this store' });
             return;
@@ -675,7 +653,7 @@ sellerDashboard.get("/reports/earnings", authSellerMiddleware, async (req, res):
         const { store_id, period = 'daily', start_date, end_date } = req.query;
 
         const seller = await prisma.seller.findUnique({
-            where: { user_id: req.userId as number },
+            where: { id: req.userId as number },
             include: { store: true }
         });
 
@@ -690,8 +668,8 @@ sellerDashboard.get("/reports/earnings", authSellerMiddleware, async (req, res):
             return;
         }
 
-        const ownsStore = seller.store.some(s => s.id === storeId);
-        if (ownsStore) {
+        const ownsStore = seller.store.some((s: any) => s.id === storeId);
+        if (!ownsStore) {
             res.status(403).json({ error: 'Access denied: You do not own this store' });
             return;
         }
@@ -852,7 +830,7 @@ sellerDashboard.get("/reports/order-status", authSellerMiddleware, async (req, r
         const { store_id, period = 'monthly' } = req.query;
 
         const seller = await prisma.seller.findUnique({
-            where: { user_id: req.userId as number },
+            where: { id: req.userId as number },
             include: { store: true }
         });
 
@@ -867,7 +845,7 @@ sellerDashboard.get("/reports/order-status", authSellerMiddleware, async (req, r
             return;
         }
 
-        const ownsStore = seller.store.some(s => s.id === storeId);
+        const ownsStore = seller.store.some((s: any) => s.id === storeId);
         if (!ownsStore) {
             res.status(403).json({ error: 'Access denied: You do not own this store' });
             return;
@@ -969,7 +947,7 @@ sellerDashboard.get("/reports/export/csv", authSellerMiddleware, async (req, res
         const { store_id, report_type = 'earnings', period = 'monthly', start_date, end_date } = req.query;
 
         const seller = await prisma.seller.findUnique({
-            where: { user_id: req.userId as number },
+            where: { id: req.userId as number },
             include: { store: true }
         });
 
@@ -984,7 +962,7 @@ sellerDashboard.get("/reports/export/csv", authSellerMiddleware, async (req, res
             return;
         }
 
-        const ownsStore = seller.store.some(s => s.id === storeId);
+        const ownsStore = seller.store.some((s: any) => s.id === storeId);
         if (!ownsStore) {
             res.status(403).json({ error: 'Access denied: You do not own this store' });
             return;
@@ -1112,7 +1090,7 @@ sellerDashboard.get("/reports/export/pdf", authSellerMiddleware, async (req, res
         const { store_id, report_type = 'earnings', period = 'monthly' } = req.query;
 
         const seller = await prisma.seller.findUnique({
-            where: { user_id: req.userId as number },
+            where: { id: req.userId as number },
             include: { 
                 store: {
                     select: {
@@ -1137,13 +1115,13 @@ sellerDashboard.get("/reports/export/pdf", authSellerMiddleware, async (req, res
             return;
         }
 
-        const ownsStore = seller.store.some(s => s.id === storeId);
+        const ownsStore = seller.store.some((s: any) => s.id === storeId);
         if (!ownsStore) {
             res.status(403).json({ error: 'Access denied: You do not own this store' });
             return;
         }
 
-        const store = seller.store.find(s => s.id === storeId);
+        const store = seller.store.find((s: any) => s.id === storeId);
 
         // For now, return a JSON structure that represents the PDF content
         // In production, you would use a library like puppeteer, jsPDF, or PDFKit

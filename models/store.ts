@@ -58,7 +58,8 @@ store.post("/create", authMiddleware, upload.single("file"), async (req, res) =>
 
         // Validate required fields
         if (!name || !address || !phone || !email || !pan_number || !adhar_number || !gst_number) {
-            return res.status(400).json({ error: 'All required fields must be provided' });
+             res.status(400).json({ error: 'All required fields must be provided' });
+            return;
         }
 
         const store = await prisma.store.create({
@@ -75,9 +76,11 @@ store.post("/create", authMiddleware, upload.single("file"), async (req, res) =>
                 store_type,
                 longitude: req.body.longitude,
                 latitude: req.body.latitude,
-                user: req.userId ? {
+                user_id: req.userId as number,
+                seller: {
+                    // Adjust this according to your schema, e.g. connect or create
                     connect: { id: req.userId as number }
-                } : undefined
+                }
             }, select: {
                 name: true,
                 address: true,
@@ -128,7 +131,8 @@ store.put("/update", authMiddleware, async (req, res) => {
     });
 
     if (!store) {
-        return res.status(404).json({ message: "Store not found" });
+         res.status(404).json({ message: "Store not found" });
+            return;
     }
 
     const { name, address, phone, email, pan_number, adhar_number, gst_number, store_open, store_close, store_type, latitude, longitude } = req.body;
@@ -172,7 +176,8 @@ store.delete("/delete", authMiddleware, async (req, res) => {
 store.post("/files", authMiddleware, upload.array('files', 5), async (req, res) => {
     try {
         if (!req.files || req.files.length === 0) {
-            return res.status(400).json({ error: 'No files uploaded' });
+             res.status(400).json({ error: 'No files uploaded' });
+            return;
         }
 
         const uploadPromises = (req.files as Express.Multer.File[]).map(async (file: Express.Multer.File) => {
@@ -277,6 +282,7 @@ store.post("/pan", upload.single('file'), async (req, res) => {
     try {
         if (!req.file) {
             res.status(400).json({ error: 'No file uploaded' });
+            return;
         }
 
         const result = await new Promise<any>((resolve, reject) => {
@@ -298,7 +304,8 @@ store.post("/pan", upload.single('file'), async (req, res) => {
             }
         });
         if (!existingPan) {
-            return res.status(404).json({ error: 'Store not found for this user' });
+             res.status(404).json({ error: 'Store not found for this user' });
+            return;
         }
         const uploadPan = await prisma.store.update({
             where: {
@@ -327,7 +334,7 @@ store.delete("/file/:cloudinaryId", authMiddleware, async (req, res) => {
         const { cloudinaryId } = req.params;
 
         if (!cloudinaryId) {
-            return res.status(400).json({ error: 'Cloudinary ID is required' });
+             res.status(400).json({ error: 'Cloudinary ID is required' });
         }
 
         const result = await cloudinary.v2.uploader.destroy(cloudinaryId);
@@ -356,7 +363,8 @@ store.get("/files", authMiddleware, async (req, res) => {
         });
 
         if (!store) {
-            return res.status(404).json({ error: 'Store not found for this user' });
+             res.status(404).json({ error: 'Store not found for this user' });
+             return;
         }
 
         const files = [];

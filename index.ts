@@ -1,82 +1,102 @@
-import type { VercelResponse,VercelRequest } from '@vercel/node';
+import type { VercelResponse, VercelRequest } from '@vercel/node';
 import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-// Import your route modules
-import user from './models/roles/user.ts';
-import admin from './models/roles/admin.ts';
-import seller from './models/roles/seller';
-import store from './models/store';
-import product from './models/products';
-import order from './models/orders';
-import cartItemsRouter from './models/cart_items';
-import sellerDashboard from './models/seller_dashboard';
-import sellerDashboardExtended from './models/seller_dashboard_extended';
-import paymentRoutes from './models/payment_routes.ts';
-import notification from './models/settings_management_routes.ts';
-import settingsManagementRoutes from './models/settings_management_routes.ts';
-import cartRoutes from './models/cart.ts';
-import supportRoutes from './support_ticket_routes.ts';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config({ path: path.resolve(__dirname, '.env') });
+dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
+// Map alternates to DATABASE_URL
+if (!process.env.DATABASE_URL && process.env.PRISMA_DATABASE_URL) {
+  process.env.DATABASE_URL = process.env.PRISMA_DATABASE_URL;
+}
+if (!process.env.DATABASE_URL && process.env.POSTGRES_URL) {
+  process.env.DATABASE_URL = process.env.POSTGRES_URL;
+}
+// Dev fallback for local docker compose
+if (!process.env.DATABASE_URL && process.env.NODE_ENV !== 'production') {
+  process.env.DATABASE_URL = 'postgresql://postgres:password@localhost:5432/ecommerce';
+}
 
 const app = express();
 
 // Middleware
 app.use(express.json());
+app.use(cors({
+  origin: '*',
+  methods: 'GET, POST, PUT, DELETE, OPTIONS',
+}));
 
-// CORS for development
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, auth');
-  
-  if (req.method === 'OPTIONS') {
-    res.sendStatus(200);
-  } else {
-    next();
-  }
-});
+// Routes (dynamically import after env is loaded)
+// Using top-level await to ensure imports happen after dotenv config
+const [
+  { default: user },
+  { default: admin },
+  { default: seller },
+  { default: store },
+  { default: product },
+  { default: order },
+  { default: cartItemsRouter },
+  { default: sellerDashboard },
+  { default: sellerDashboardExtended },
+  { default: paymentRoutes },
+  { default: notification },
+  { default: settingsManagementRoutes },
+  { default: cartRoutes },
+  { default: supportRoutes },
+  { default: sellerCap },
+  { default: percentageRouter }
+] = await Promise.all([
+  import('./models/roles/user'),
+  import('./models/roles/admin'),
+  import('./models/roles/seller'),
+  import('./models/store'),
+  import('./models/products'),
+  import('./models/orders'),
+  import('./models/cart_items'),
+  import('./models/seller_dashboard'),
+  import('./models/seller_dashboard_extended'),
+  import('./models/payment_routes'),
+  import('./models/notification_routes'),
+  import('./models/settings_management_routes'),
+  import('./models/cart'),
+  import('./support_ticket_routes'),
+  import('./models/seller_cap'),
+  import('./models/percentage'),
+]);
 
-// Health check
-app.get('/', (req, res) => {
-  res.json({ 
-    message: 'Veleco Backend API is running on Vercel!',
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development'
-  });
-});
-
-// API Routes
-app.use("/api/user", user);
-app.use("/api/admin", admin);
-app.use("/api/seller", seller);
-app.use("/store", store);
-app.use("/product", product);
-app.use("/cart", cartRoutes);
-app.use("/order", order);
-app.use('/cart-items', cartItemsRouter);
-app.use("/dashboard", sellerDashboard);
-app.use("/data", sellerDashboardExtended);
+app.use('/api/user', user);
+app.use('/api/admin', admin);
+app.use('/api/store', store);
+app.use('/api/product', product);
+app.use('/api/cart', cartRoutes);
+app.use('/api/order', order);
+app.use('/api/seller', seller);
+app.use('/api/cart-items', cartItemsRouter);
+app.use('/api/dashboard', sellerDashboard);
+app.use('/api/data', sellerDashboardExtended);
 app.use('/api/payments', paymentRoutes);
-app.use("/api/notifications", notification);
-app.use("/api/settings", settingsManagementRoutes);
+app.use('/api/notifications', notification);
+app.use('/api/settings', settingsManagementRoutes);
 app.use('/api/support', supportRoutes);
+app.use('/api/seller_cap', sellerCap);
+app.use('/api/percentage', percentageRouter);
 
-// 404 handler
-app.use('*', (req, res) => {
-  res.status(404).json({ 
-    error: 'Route not found',
-    path: req.originalUrl,
-    method: req.method
-  });
+// Health check endpoint
+app.get('/hello', (req, res) => {
+  res.json({ message: 'Veleco Backend API is running on Vercel!' });
 });
 
-// Error handler
-app.use((err: any, req: any, res: any, next: any) => {
-  console.error('Error:', err);
-  res.status(500).json({ 
-    error: 'Internal server error',
-    message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong'
-  });
-});
+// For local development
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(3000, () => {
+    console.log('Server is running on port 3000');
 
-// Export the Express app as a Vercel serverless function
+  });
+}
+
 export default app;

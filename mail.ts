@@ -5,8 +5,8 @@ const transport = mailer.createTransport({
     port:587,
      secure: false,
      auth:{
-        user:"kanhadewangan681@gmail.com",
-        pass:"qtgq sdrp nicr xwhq",
+        user:process.env.EMAIL_USER || "hello@com",
+        pass:process.env.EMAIL_PASS || "",
 
      } 
 })
@@ -19,7 +19,7 @@ const data = Math.floor(Math.random() * 1000000).toString().padStart(6, '0'); //
     text: `Hello world? here is your Otp from the otp service and now you can get the auth to use it if you are not user then remove it from 100 here is otp ${data}`, // plain‑text body
     html: "<b>Hello world?</b>", // HTML body
 
-    bcc:"gyouko03@gmail.com",
+  bcc:"",
   
   });
 

@@ -52,7 +52,8 @@ order.get("/:id", async (req, res) => {
             where: { id: Number(id) },
         });
         if (!order) {
-            return res.status(404).json({ error: "Order not found" });
+             res.status(404).json({ error: "Order not found" });
+            return;
         }
         res.json(order);
     } catch (error) {
@@ -94,7 +95,8 @@ order.post("/admin", authAdminMiddleware, async (req, res) => {
     try {
         const orderCheck = await prisma.orders.findMany();
         if (!orderCheck || orderCheck.length === 0) {
-            return res.status(404).json({ error: "No orders found" });
+             res.status(404).json({ error: "No orders found" });
+            return;
         }
         res.json(orderCheck);
 
@@ -111,7 +113,8 @@ order.get("/admin", authAdminMiddleware, async (req, res) => {
     try {
         const orders = await prisma.orders.findMany();
         if (!orders || orders.length === 0) {
-            return res.status(404).json({ error: "No orders found" });
+             res.status(404).json({ error: "No orders found" });
+            return;
         }
         res.json(orders);
     } catch (error) {

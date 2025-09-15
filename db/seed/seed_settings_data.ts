@@ -168,7 +168,7 @@ async function seedSettingsData() {
       prisma.seller_session.create({
         data: {
           seller_id: sellers[0]!.id,
-          user_id: sellers[0]!.user_id,
+          user_id: sellers[0]!.id, // Using seller_id as user_id since seller doesn't have separate user_id
           device_info: 'Chrome 126.0.6478.127 on Windows 10',
           ip_address: '192.168.1.100',
           login_time: new Date('2024-06-26T08:00:00Z'),
@@ -179,7 +179,7 @@ async function seedSettingsData() {
       prisma.seller_session.create({
         data: {
           seller_id: sellers[0]!.id,
-          user_id: sellers[0]!.user_id,
+          user_id: sellers[0]!.id, // Using seller_id as user_id since seller doesn't have separate user_id
           device_info: 'Mobile Safari on iPhone 15',
           ip_address: '192.168.1.101',
           login_time: new Date('2024-06-26T07:30:00Z'),
@@ -191,7 +191,7 @@ async function seedSettingsData() {
         prisma.seller_session.create({
           data: {
             seller_id: sellers[1]!.id,
-            user_id: sellers[1]!.user_id,
+            user_id: sellers[1]!.id, // Using seller_id as user_id since seller doesn't have separate user_id
             device_info: 'Firefox 127.0 on macOS Sonoma',
             ip_address: '192.168.1.102',
             login_time: new Date('2024-06-26T09:15:00Z'),
@@ -239,7 +239,7 @@ async function seedSettingsData() {
       prisma.seller_session.create({
         data: {
           seller_id: sellers[0]!.id,
-          user_id: sellers[0]!.user_id,
+          user_id: sellers[0]!.id, // Using seller_id as user_id since seller doesn't have separate user_id
           device_info: 'Chrome 125.0 on Windows 10',
           ip_address: '192.168.1.103',
           login_time: new Date('2024-06-20T10:00:00Z'),
