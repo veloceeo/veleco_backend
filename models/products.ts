@@ -10,7 +10,8 @@ const prisma = new PrismaClient()
 product.get("/",authMiddleware, async (req, res) => {
     const product = await prisma.product.findMany();
     if (!product || product.length === 0) {
-        return res.status(404).json({ error: "No products found" });
+         res.status(404).json({ error: "No products found" });
+         return;
     }
     res.send(product);
 })
