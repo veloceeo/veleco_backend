@@ -13,7 +13,7 @@
   "db:push": "prisma db push --schema=./db/prisma/schema.prisma",
   "db:seed": "prisma db seed --schema=./db/prisma/schema.prisma"
 },
-  "dependencies": {
+ "dependencies": {
     "express": "^5.1.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.2",
@@ -25,15 +25,12 @@
     "@prisma/client": "^6.15.0",
     "@vercel/node": "^5.3.21",
     "@vercel/postgres": "^0.10.0",
-    "@vercel/edge-config": "^1.4.0"
+    "@vercel/edge-config": "^1.4.0",
+    "@types/express": "^4.17.21"
   },
-  "devDependencies": {
+"devDependencies": {
   "typescript": "^5.9.2",
   "ts-node": "^10.9.2",
-  "@types/node": "^20.19.13",
-  "@types/express": "^4.17.21"
-  },
-  "prisma": {
-    "schema": "./db/prisma/schema.prisma"
-  }
+  "@types/node": "^20.19.13"
+}
 }
