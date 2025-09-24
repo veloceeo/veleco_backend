@@ -9,7 +9,6 @@ product.get("/",authUserMiddleware, async (req, res) => {
     const product = await prisma.product.findMany();
     if (!product || product.length === 0) {
          res.status(404).json({ error: "No products found" });
-        return;
     }
     res.send(product);
 })
